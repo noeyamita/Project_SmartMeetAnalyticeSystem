@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="th">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ระบบจองห้องประชุม (ตัวอย่าง)</title>
+    <link rel="stylesheet" href="BookingMeetingRoom.css" />
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>ระบบจองห้องประชุม</h1>
+            <p class="muted">เลือกช่วงเวลาและจำนวนผู้เข้าร่วมเพื่อค้นหาห้องว่าง</p>
+        </header>
+
+        <section class="search-panel card">
+            <div class="row">
+                <label>วันที่
+                    <input type="date" id="date" />
+                </label>
+                <label>เวลาเริ่มต้น
+                    <input type="time" id="start_time" />
+                </label>
+                <label>เวลาสิ้นสุด
+                    <input type="time" id="end_time" />
+                </label>
+                <label>จำนวนผู้เข้าร่วม
+                    <input type="number" id="participants" min="1" value="1" />
+                </label>
+            </div>
+            <div class="actions">
+                <button id="searchBtn" class="btn primary">ค้นหาห้องว่าง</button>
+                <button id="resetBtn" class="btn">ล้างค่า</button>
+            </div>
+        </section>
+
+        <section class="rooms-panel card">
+            <h2>ผลลัพธ์ห้องประชุม</h2>
+            <div id="roomsContainer" class="rooms-grid">
+                <!-- ห้องจะถูกเติมโดย JS -->
+            </div>
+            <div class="legend">
+                <span class="legend-item"><span class="chip available"></span> ห้องว่าง</span>
+                <span class="legend-item"><span class="chip booked"></span> ถูกจอง</span>
+                <span class="legend-item"><span class="chip maintenance"></span> ปิดปรับปรุง</span>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal / side panel for booking -->
+    <div id="bookingModal" class="modal hidden">
+        <div class="modal-content">
+            <button class="close" id="closeModal">&times;</button>
+            <h3 id="modalRoomTitle">จองห้อง</h3>
+            <form id="bookingForm">
+                <input type="hidden" id="room_id" />
+                <div class="field">
+                    <label>อุปกรณ์เสริมที่ต้องการ</label>
+                    <div id="equipmentList" class="equipment-list">
+                        <!-- เติมจาก JS -->
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>รูปแบบการจัดโต๊ะ</label>
+                    <div>
+                        <label><input type="radio" name="layout" value="Theater" checked /> Theater</label>
+                        <label><input type="radio" name="layout" value="U-Shape" /> U-Shape</label>
+                        <label><input type="radio" name="layout" value="Boardroom" /> Boardroom</label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>เบอร์โทรศัพท์ผู้จอง
+                        <input type="tel" id="phone" placeholder="08x-xxx-xxxx" required />
+                    </label>
+                </div>
+
+                <div class="field">
+                    <label>หัวข้อการประชุม
+                        <input type="text" id="title" placeholder="หัวข้อการประชุม" required />
+                    </label>
+                </div>
+
+                <div class="field small">
+                    <label>วันที่
+                        <input type="date" id="book_date" required />
+                    </label>
+                    <label>เวลาเริ่มต้น
+                        <input type="time" id="book_start_time" required />
+                    </label>
+                    <label>เวลาสิ้นสุด
+                        <input type="time" id="book_end_time" required />
+                    </label>
+                </div>
+
+                <div class="actions" style="margin-top:12px;">
+                    <button type="submit" class="btn primary">ยืนยันการจอง</button>
+                    <button type="button" id="cancelBtn" class="btn">ยกเลิก</button>
+                </div>
+
+                <div id="formMessage" class="form-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="BookingMeetingRoom.js"></script>
+</body>
+
+</html>

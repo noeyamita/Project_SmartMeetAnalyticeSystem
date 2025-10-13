@@ -1,0 +1,263 @@
+:root {
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+    --card: #ffffff;
+    --primary: #2b7cff;
+    --muted: #000000;
+    --success: #16a34a;
+    --danger: #ef4444;
+    --warning: #f97316;
+}
+
+* {
+    box-sizing: border-box
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, "Noto Sans Thai", Arial;
+    background: var(--bg);
+    color: #ffffff;
+    padding: 24px;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto
+}
+
+header h1 {
+    margin: 0;
+    font-size: 24px
+}
+
+header .muted {
+    color: var(--muted);
+    margin-top: 6px
+}
+
+.card {
+    background: var(--card);
+    padding: 16px;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(8, 15, 30, 0.06);
+    margin-top: 16px;
+}
+
+.search-panel .row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap
+}
+
+.search-panel label {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    color: var(--muted);
+    min-width: 150px;
+}
+
+.search-panel input[type="date"],
+.search-panel input[type="time"],
+.search-panel input[type="number"] {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #e6e9ef;
+    margin-top: 6px;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 12px
+}
+
+.btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: white;
+    cursor: pointer;
+}
+
+.btn.primary {
+    background: linear-gradient(90deg, var(--primary), #2d6df6);
+    color: white;
+    border: none;
+    box-shadow: 0 6px 14px rgba(43, 124, 255, 0.18)
+}
+
+.rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.room-card {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #eef2ff;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(250, 250, 255, 0.95));
+}
+
+.room-title {
+    font-weight: 600
+}
+
+.room-cap {
+    font-size: 13px;
+    color: var(--muted)
+}
+
+.room-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between
+}
+
+.chip {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    display: inline-block
+}
+
+.chip.available {
+    background: var(--success)
+}
+
+.chip.booked {
+    background: var(--danger)
+}
+
+.chip.maintenance {
+    background: var(--warning)
+}
+
+.room-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end
+}
+
+.room-actions button {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: none;
+    background: #111827;
+    color: white;
+    cursor: pointer
+}
+
+.legend {
+    margin-top: 10px;
+    color: var(--muted);
+    display: flex;
+    gap: 12px;
+    align-items: center
+}
+
+.legend .legend-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 13px
+}
+
+.legend .chip {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 999
+}
+
+.modal.hidden {
+    display: none
+}
+
+.modal-content {
+    width: 760px;
+    max-width: 98%;
+    background: white;
+    padding: 18px;
+    border-radius: 12px;
+    position: relative
+}
+
+.modal-content .close {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--muted)
+}
+
+.equipment-list {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap
+}
+
+.equipment-item {
+    border: 1px dashed #e6e9ef;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 13px
+}
+
+.field {
+    margin-top: 10px
+}
+
+.field.small {
+    display: flex;
+    gap: 8px;
+    align-items: center
+}
+
+.field label {
+    display: block;
+    color: var(--muted);
+    font-size: 13px
+}
+
+.field input[type="text"],
+.field input[type="tel"],
+.field input[type="date"],
+.field input[type="time"] {
+    margin-top: 6px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #e6e9ef;
+    width: 100%;
+}
+
+.form-message {
+    margin-top: 10px;
+    color: var(--danger)
+}
+
+@media (max-width:640px) {
+    .search-panel .row {
+        flex-direction: column
+    }
+}
