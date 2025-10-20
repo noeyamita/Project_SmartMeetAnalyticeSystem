@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  apache-php:
+    build: .
+    container_name: php-apache-backend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+    environment:
+      - DB_HOST=mysql-db
+      - DB_USER=DBT68031
+      - DB_PASSWORD=64812
+      - DB_NAME=db_amita
+    networks:
+      - backend-network
+    depends_on:
+      - mysql-db
+
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-database
+    environment:
+      MYSQL_ROOT_PASSWORD: 64812
+      MYSQL_DATABASE: db_amita
+      MYSQL_USER: DBT68031
+      MYSQL_PASSWORD: 64812
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - backend-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 5s
+      retries: 10
+
+networks:
+  backend-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
