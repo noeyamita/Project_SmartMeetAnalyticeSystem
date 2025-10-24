@@ -38,7 +38,7 @@
             const messageEl = document.getElementById('loginMessage');
 
             try {
-                const response = await fetch('http://localhost:8080/api/login.php', {
+                const response = await fetch('src/api/login.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -49,7 +49,7 @@
                     messageEl.style.color = 'green';
                     messageEl.textContent = result.message;
                     setTimeout(() => {
-                        window.location.href = '/dashboard.html';
+                        window.location.href = '/BookingMeetingRoom.html';
                     }, 1000);
                 } else {
                     messageEl.style.color = 'red';

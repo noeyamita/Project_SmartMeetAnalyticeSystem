@@ -10,7 +10,7 @@
 
 <body>
     <div class="login-container">
-        <!-- ✅ เพิ่ม id และ attributes -->
+        <!-- เพิ่ม id และ attributes -->
         <form class="login-box" id="signupForm">
             <h2>Sign up</h2>
             <p class="register">Already have an account? <a href="login.html">Sign in here.</a></p>
@@ -96,7 +96,7 @@
             });
         }
 
-        // ✅ เพิ่ม Form Submission Handler
+        // Form Submission Handler
         document.getElementById('signupForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
@@ -113,11 +113,19 @@
                 return;
             }
 
+            // แสดง loading message
+            messageEl.style.color = '#666';
+            messageEl.textContent = 'กำลังสมัครสมาชิก...';
+
             try {
-                const response = await fetch('http://localhost:8080/api/signup.php', {
+                const response = await fetch('src/api/signup.php', {  // แก้ URL
                     method: 'POST',
                     body: formData
                 });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
                 const result = await response.json();
 
@@ -125,7 +133,7 @@
                     messageEl.style.color = 'green';
                     messageEl.textContent = result.message;
                     setTimeout(() => {
-                        window.location.href = '/login.html';
+                        window.location.href = 'login.html';  // แก้เส้นทาง
                     }, 1500);
                 } else {
                     messageEl.style.color = 'red';
@@ -134,7 +142,7 @@
             } catch (error) {
                 messageEl.style.color = 'red';
                 messageEl.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
-                console.error(error);
+                console.error('Error:', error);
             }
         });
 

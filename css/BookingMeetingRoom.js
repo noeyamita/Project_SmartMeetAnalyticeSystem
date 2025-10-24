@@ -1,5 +1,5 @@
-// User role simulation (change to 'user' to test user view)
-let userRole = 'admin'; // 'admin' or 'user'
+
+let userRole = 'admin';
 
 const menuItems = [
     {
