@@ -1,45 +1,47 @@
 version: '3.8'
 
 services:
-  apache-php:
+  php-apache-backend:
     build: .
     container_name: php-apache-backend
     ports:
       - "8080:80"
     volumes:
-      - ./src:/var/www/html
-    environment:
-      - DB_HOST=mysql-db
-      - DB_USER=DBT68031
-      - DB_PASSWORD=64812
-      - DB_NAME=db_amita
-    networks:
-      - backend-network
+      - ./html:/var/www/html
+      - ./css:/var/www/html/css
+      - ./php/apache-config.conf:/etc/apache2/conf-enabled/apache-config.conf
     depends_on:
-      - mysql-db
-
-  mysql-db:
-    image: mysql:8.0
-    container_name: mysql-database
+      - mysql
     environment:
-      MYSQL_ROOT_PASSWORD: 64812
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: 1234
+      DB_NAME: db_amita
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: db_amita
-      MYSQL_USER: DBT68031
-      MYSQL_PASSWORD: 64812
     ports:
       - "3306:3306"
     volumes:
-      - mysql-data:/var/lib/mysql
-    networks:
-      - backend-network
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      timeout: 5s
-      retries: 10
+      - mysql_data:/var/lib/mysql
 
-networks:
-  backend-network:
-    driver: bridge
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: 1234
+    depends_on:
+      - mysql
 
 volumes:
-  mysql-data:
+  mysql_data:
+
+

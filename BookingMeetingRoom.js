@@ -33,7 +33,7 @@ const menuItems = [
 ];
 
 // Initialize app when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeApp();
 });
 
@@ -145,7 +145,7 @@ function logout() {
 function toggleRole() {
     userRole = userRole === 'admin' ? 'user' : 'admin';
     initializeApp();
-    
+
     // Navigate back to booking page after role change
     const bookingMenuItem = document.querySelector('.menu-item');
     if (bookingMenuItem) {
@@ -178,10 +178,10 @@ function addDemoRoleToggle() {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         transition: all 0.2s;
     `;
-    roleToggle.onmouseover = function() {
+    roleToggle.onmouseover = function () {
         this.style.transform = 'scale(1.05)';
     };
-    roleToggle.onmouseout = function() {
+    roleToggle.onmouseout = function () {
         this.style.transform = 'scale(1)';
     };
     roleToggle.onclick = toggleRole;

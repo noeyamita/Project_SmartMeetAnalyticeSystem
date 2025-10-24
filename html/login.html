@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="css/login_out_forgot.css">
+</head>
+
+<body>
+    <div class="login-container">
+        <form class="login-box" id="loginForm">
+            <h2>Login</h2>
+            <p class="register">Not registered? <a href="signup.html">Click here to sign up.</a></p>
+            <div class="input-box">
+                <input type="email" name="email" placeholder="Email" required>
+            </div>
+
+            <div class="input-box">
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+
+            <div class="options">
+                <a href="ForgotPassword.html">Forgot Password?</a>
+            </div>
+
+            <button type="submit" class="btn">Login</button>
+            <p id="loginMessage" style="margin-top: 10px; text-align: center;"></p>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const messageEl = document.getElementById('loginMessage');
+
+            try {
+                const response = await fetch('http://localhost:8080/api/login.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    messageEl.style.color = 'green';
+                    messageEl.textContent = result.message;
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 1000);
+                } else {
+                    messageEl.style.color = 'red';
+                    messageEl.textContent = result.message;
+                }
+            } catch (error) {
+                messageEl.style.color = 'red';
+                messageEl.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+
+</html>
