@@ -1,0 +1,172 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    min-height: 100vh;
+    background: #f4f6fb;
+}
+
+/* ===== Sidebar Layout ===== */
+.sidebar {
+    width: 260px;
+    background: linear-gradient(180deg, #3b5998 0%, #192f6a 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Header ===== */
+.sidebar-header {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #e9eefc;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-header i {
+    font-size: 18px;
+}
+
+/* ===== Navigation ===== */
+.sidebar-nav {
+    flex: 1;
+    padding: 10px 0;
+    overflow-y: auto;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    color: #dbe4ff;
+    text-decoration: none;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.nav-item i {
+    font-size: 18px;
+    width: 22px;
+    text-align: center;
+    color: #a8b4e1;
+    transition: color 0.3s;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-left: 4px solid #4e8cff;
+    color: #ffffff;
+}
+
+.nav-item:hover i {
+    color: #ffffff;
+}
+
+.nav-item.active {
+    background: rgba(78, 140, 255, 0.25);
+    border-left: 4px solid #4e8cff;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.nav-item.active i {
+    color: #4e8cff;
+}
+
+.badge {
+    margin-left: auto;
+    background: #e74c3c;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* ===== Footer / Logout ===== */
+.sidebar-footer {
+    padding: 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: #4e8cff;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: #3c74e8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(78, 140, 255, 0.4);
+}
+
+.logout-btn i {
+    font-size: 16px;
+}
+
+/* ===== Scrollbar Styling ===== */
+.sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* ===== Main Content Layout ===== */
+.main-content {
+    margin-left: 260px;
+    /* เว้นระยะให้ sidebar */
+    width: calc(100% - 260px);
+    padding: 20px;
+}
+
+/* ===== Modal ===== */
+.modal {
+    z-index: 500 !important;
+    /* ต้องน้อยกว่า sidebar (1000) */
+}
+
+.modal-backdrop {
+    z-index: 499 !important;
+}
+
+/* ===== Booking Modal ===== */
+#bookingModal {
+    z-index: 500 !important;
+}

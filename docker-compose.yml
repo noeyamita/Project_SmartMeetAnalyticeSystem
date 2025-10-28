@@ -8,6 +8,8 @@ services:
       - "8080:80"
     volumes:
       - ./html:/var/www/html
+      - ./css:/var/www/html/css
+      - ./js:/var/www/html/js
       - ./src:/var/www/html/src
       - ./php/apache-config.conf:/etc/apache2/conf-enabled/apache-config.conf
     depends_on:

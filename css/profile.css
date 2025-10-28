@@ -1,0 +1,337 @@
+:root {
+    --primary-color: #5b6de2;
+    /* สีน้ำเงินม่วงหลัก */
+    --secondary-color: #8c7aea;
+    /* สีม่วงรอง */
+    --background-gradient: linear-gradient(135deg, #6c5ce7, #8e5bd9);
+    /* Gradient จากรูป 3 */
+    --text-color: #343a40;
+    --light-text-color: #6c757d;
+    --border-color: #e0e0e0;
+    --card-bg: #ffffff;
+    --tab-inactive-bg: #f8f9fa;
+    --tab-active-bg: var(--card-bg);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--background-gradient);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+
+.main-container {
+    width: 100%;
+    /* ปรับขนาดให้เหมาะสมกับภาพตัวอย่าง */
+    max-width: 800px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.page-title {
+    color: var(--text-color);
+    font-size: 2.5em;
+    padding: 30px 40px 0;
+    margin: 0;
+    font-weight: 700;
+}
+
+/* --- Tab Navigation --- */
+.tab-navigation {
+    display: flex;
+    padding: 0 40px;
+    border-bottom: 1px solid var(--border-color);
+    margin-top: 20px;
+}
+
+.tab-button {
+    background-color: transparent;
+    border: none;
+    padding: 15px 25px;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--light-text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+}
+
+.tab-button:hover:not(.active) {
+    color: var(--primary-color);
+}
+
+.tab-button.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+/* --- Content Panel --- */
+.content-panel {
+    padding: 40px;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* --- Card Styling --- */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.card h2 {
+    color: var(--text-color);
+    font-size: 1.6em;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.card-description {
+    color: var(--light-text-color);
+    font-size: 0.95em;
+    margin-bottom: 25px;
+}
+
+/* --- Form Elements --- */
+label {
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.95em;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="date"],
+select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+    color: var(--text-color);
+    background-color: #f8f8f8;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(91, 109, 226, 0.2);
+    outline: none;
+}
+
+input[disabled] {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
+
+.form-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 10px;
+}
+
+/* --- Buttons --- */
+.btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1em;
+    transition: background-color 0.3s, transform 0.2s;
+    white-space: nowrap;
+    /* ป้องกันข้อความปุ่มถูกตัด */
+}
+
+.primary-btn {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.primary-btn:hover {
+    background-color: #4a5bd1;
+    transform: translateY(-1px);
+}
+
+.save-btn {
+    /* สำหรับปุ่ม Save Changes เมื่ออยู่ในโหมดแก้ไข */
+    background-color: #28a745;
+    color: white;
+}
+
+.save-btn:hover {
+    background-color: #1e7e34;
+}
+
+.secondary-btn {
+    background-color: var(--tab-inactive-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.secondary-btn:hover {
+    background-color: #e2e6ea;
+    transform: translateY(-1px);
+}
+
+/* --- Table Styling --- */
+#booking-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 25px;
+    font-size: 0.95em;
+}
+
+#booking-table th,
+#booking-table td {
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px 12px;
+    text-align: left;
+}
+
+#booking-table th {
+    background-color: var(--card-bg);
+    color: var(--light-text-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85em;
+}
+
+#booking-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Badges */
+.status {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    display: inline-block;
+    font-size: 0.85em;
+}
+
+.completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.view-details-btn {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95em;
+    margin-right: 15px;
+    /* เว้นระยะห่างจากปุ่ม Cancel */
+}
+
+.view-details-btn:hover {
+    text-decoration: underline;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+    body {
+        padding: 0;
+    }
+
+    .main-container {
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .page-title {
+        font-size: 2em;
+        padding: 20px;
+    }
+
+    .tab-navigation {
+        padding: 0 20px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        border-bottom: none;
+    }
+
+    .tab-button {
+        flex-shrink: 0;
+        /* ป้องกันการหดตัว */
+        padding: 15px 15px;
+        margin-bottom: 0;
+    }
+
+    .content-panel {
+        padding: 20px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    #booking-table thead {
+        display: none;
+        /* ซ่อนหัวตารางบนมือถือ */
+    }
+
+    #booking-table td {
+        display: block;
+        text-align: right;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    #booking-table td::before {
+        content: attr(data-label);
+        /* แสดงหัวตารางเป็น Label */
+        float: left;
+        font-weight: bold;
+        color: var(--text-color);
+    }
+
+    #booking-table td:last-child {
+        text-align: left;
+    }
+}

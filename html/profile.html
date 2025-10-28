@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Profile</title>
+    <link rel="stylesheet" href="../css/profile.css">
+</head>
+
+<body>
+    <div class="main-container">
+        <h1 class="page-title">Settings</h1>
+
+        <div class="tab-navigation">
+            <button class="tab-button active" data-tab="profile" id="tab-profile">Profile</button>
+            <button class="tab-button" data-tab="booking-history" id="tab-booking-history">ประวัติการจอง</button>
+        </div>
+
+        <div class="content-panel">
+            <div id="profile-tab" class="tab-content active">
+                <section class="card">
+                    <h2>Edit Profile</h2>
+                    <p class="card-description">แก้ไขข้อมูล</p>
+                    <form id="edit-profile-form">
+                        <label for="full-name">Full Name</label>
+                        <input type="text" id="full-name" value="Amita Petchprasert" disabled>
+
+                        <label for="user-email">Email</label>
+                        <input type="email" id="user-email" value="noeyfriv@gmail.com" disabled>
+
+                        <div class="form-actions">
+                            <button type="button" id="toggle-edit-info" class="btn primary-btn">Edit Profile</button>
+                        </div>
+
+                        <div id="email-confirmation-fields" style="display:none; margin-top: 20px;">
+                            <p class="card-description email-note">
+                                ก่อนที่จะเปลี่ยนอีเมลต้องทำการยืนยันอีเมลใหม่ก่อน
+                            </p>
+                            <label for="new-email-confirm">ยืนยันEmail</label>
+                            <input type="email" id="new-email-confirm">
+                            <div class="form-actions">
+                                <button type="button" id="send-verification-btn" class="btn primary-btn">Send
+                                    Verification Link</button>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="card" id="change-password-section">
+                    <h2>Change Password</h2>
+                    <p class="card-description">เปลี่ยน password
+                    </p>
+                    <form id="password-form">
+                        <label for="current-password">Current Password</label>
+                        <input type="password" id="current-password" required>
+
+                        <label for="new-password">New Password</label>
+                        <input type="password" id="new-password" required>
+
+                        <label for="confirm-password">Confirm New Password</label>
+                        <input type="password" id="confirm-password" required>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn primary-btn">Update Password</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+
+            <div id="booking-history-tab" class="tab-content">
+                <section class="card">
+                    <h2>Booking History</h2>
+                    <p class="card-description">A log of all your past room bookings.</p>
+
+                    <div class="booking-filters" style="display:none;">
+                        <label for="filter-date">Date:</label>
+                        <input type="date" id="filter-date">
+
+                        <label for="filter-status">Status:</label>
+                        <select id="filter-status">
+                            <option value="">All</option>
+                            <option value="completed">Completed</option>
+                            <option value="pending">Pending</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <button id="apply-filter-btn" class="btn primary-btn">Filter</button>
+                    </div>
+
+                    <table id="booking-table">
+                        <thead>
+                            <tr>
+                                <th>Room</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+
+            <div id="relocation-history-tab" class="tab-content">
+                <section class="card">
+                    <h2>Relocation History</h2>
+                    <p class="card-description">No relocation history available yet.</p>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/profile.js"></script>
+</body>
+
+</html>
