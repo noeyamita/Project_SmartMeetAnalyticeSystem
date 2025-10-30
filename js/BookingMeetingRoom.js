@@ -80,7 +80,9 @@ function timeOverlap(startA, endA, startB, endB) {
 async function fetchRooms(capacity = 0) {
     const url = `${API_BASE}getRooms.php?capacity=${capacity}`;
 
-    const res = await fetch(url);
+    const res = await fetch(url, {
+        credentials: "include",
+    });
     const json = await res.json();
 
     if (json.status !== "success") throw new Error(json.message);
@@ -89,7 +91,9 @@ async function fetchRooms(capacity = 0) {
 
 // ดึงการจองจาก backend
 async function fetchBookings(date) {
-    const res = await fetch(`${API_BASE}getBookings.php?date=${date}`);
+    const res = await fetch(`${API_BASE}getBookings.php?date=${date}`, {
+        credentials: "include",
+    });
     const json = await res.json();
     if (json.status !== "success") throw new Error(json.message);
     return json.data;
@@ -99,6 +103,7 @@ async function fetchBookings(date) {
 async function createBooking(data) {
     const res = await fetch(`${API_BASE}createBooking.php`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
     });
@@ -186,27 +191,39 @@ async function confirmBooking() {
         return;
     }
 
+    if (!selectedRoom || !searchCriteria) {
+        showAlert("ข้อมูลห้องประชุมไม่ครบ กรุณาเลือกใหม่", "error");
+        return;
+    }
+
     const newBooking = {
-        user_id: 1,
         room_id: selectedRoom.room_id,
         booking_date: searchCriteria.date,
-        start_time: parseFloat(searchCriteria.startTime.replace(":", ".")),
-        end_time: parseFloat(searchCriteria.endTime.replace(":", ".")),
+        start_time: searchCriteria.startTime,
+        end_time: searchCriteria.endTime,
         purpose: title,
         attendees_count: searchCriteria.capacity,
         table_layout: 1,
+        description: desc,
     };
 
-    const result = await createBooking(newBooking);
+    try {
+        // ✅ เรียก API
+        const result = await createBooking(newBooking);
 
-    if (result.status === "success") {
-        closeModal();
-        showAlert(`จองห้อง ${selectedRoom.room_name} สำเร็จ!`, "success");
-        setTimeout(searchRooms, 1000);
-    } else {
-        showAlert("จองไม่สำเร็จ: " + result.message, "error");
+        if (result.success) {
+            showAlert("จองห้องสำเร็จ!", "success");
+            closeModal();
+            resetSearch();
+        } else {
+            showAlert(result.message || "เกิดข้อผิดพลาดในการจอง", "error");
+        }
+    } catch (err) {
+        console.error("❌ Booking error:", err);
+        showAlert("เกิดข้อผิดพลาดในการจองห้อง: " + err.message, "error");
     }
 }
+
 
 // ฟังก์ชันล้างค่า
 function resetSearch() {
@@ -224,9 +241,8 @@ function resetSearch() {
     searchCriteria = null;
 }
 
-// ============================================
-// 🔔 ระบบแจ้งเตือน
-// ============================================
+//  ระบบแจ้งเตือน
+
 function showAlert(message, type) {
     const alertBox = document.getElementById("alertBox");
     alertBox.textContent = message;

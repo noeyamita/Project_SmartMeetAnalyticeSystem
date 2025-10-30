@@ -1,64 +1,33 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // ----------------------------------------------------
-    // ข้อมูลจำลอง (Mock Data)
-    // ----------------------------------------------------
-    let currentUser = {
-        fullName: "Alex Doe",
-        email: "alex.doe@example.com"
-    };
+const API_BASE = "src/api/";
 
-    let bookings = [
-        { id: 101, room: 'Aquila', date: '24/10/2025', time: '19:31 - 21:31', status: 'completed' },
-        { id: 102, room: 'Lyra', date: '25/10/2025', time: '19:31 - 22:31', status: 'completed' },
-        { id: 103, room: 'Aries', date: '26/10/2025', time: '10:00 - 12:00', status: 'pending' },
-        { id: 104, room: 'Cygnus', date: '27/10/2025', time: '14:00 - 16:00', status: 'cancelled' },
-    ];
-    // ----------------------------------------------------
-
-    // --- Tab Navigation Logic ---
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const tabId = button.dataset.tab;
-
-            // Remove active class from all buttons and contents
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-
-            // Add active class to the clicked button and corresponding content
-            button.classList.add('active');
-            document.getElementById(`${tabId}-tab`).classList.add('active');
-
-            // Render booking history if that tab is active
-            if (tabId === 'booking-history') {
-                renderBookings(bookings);
-            }
-        });
-    });
-
-    // ----------------------------------------------------
-    // 1. ฟีเจอร์แก้ไขข้อมูลส่วนตัว (ชื่อ-นามสกุล, อีเมล)
-    // ----------------------------------------------------
+document.addEventListener('DOMContentLoaded', async () => {
+    let currentUser = null;
+    let bookings = [];
+    let isEditingProfile = false;
+    let originalFname = '';
+    let originalLname = '';
     const fullNameInput = document.getElementById('full-name');
     const userEmailInput = document.getElementById('user-email');
     const toggleEditInfoBtn = document.getElementById('toggle-edit-info');
     const editProfileForm = document.getElementById('edit-profile-form');
     const formActionsDiv = editProfileForm.querySelector('.form-actions');
     const emailConfirmationFields = document.getElementById('email-confirmation-fields');
-    const newEmailConfirmInput = document.getElementById('new-email-confirm');
-    const sendVerificationBtn = document.getElementById('send-verification-btn');
+    const passwordForm = document.getElementById('password-form');
+    const bookingTableBody = document.querySelector('#booking-table tbody');
+    const applyFilterBtn = document.getElementById('apply-filter-btn');
+    const filterDateInput = document.getElementById('filter-date');
+    const filterStatusSelect = document.getElementById('filter-status');
 
-    // ตั้งค่าค่าเริ่มต้นจาก currentUser
-    fullNameInput.value = currentUser.fullName;
-    userEmailInput.value = currentUser.email;
+    //แสดงข้อมูลผู้ใช้
+    function displayUserInfo() {
+        if (!currentUser) return;
 
-    let isEditingProfile = false;
-    let originalName = currentUser.fullName;
-    let originalEmail = currentUser.email;
+        fullNameInput.value = currentUser.fullName;
+        userEmailInput.value = currentUser.email;
+        originalFname = currentUser.fname;
+        originalLname = currentUser.lname;
+    }
 
-    // ฟังก์ชันสำหรับสลับโหมดกลับเป็น 'Edit Profile'
     function revertToEditMode() {
         fullNameInput.disabled = true;
         userEmailInput.disabled = true;
@@ -76,156 +45,251 @@ document.addEventListener('DOMContentLoaded', () => {
         isEditingProfile = false;
     }
 
-    toggleEditInfoBtn.addEventListener('click', () => {
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#ffc107'};
+            color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+        `;
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // โหลดข้อมูลผู้ใช้จาก API
+    try {
+        const userResponse = await fetch(`${API_BASE}getUser.php`);
+        const userData = await userResponse.json();
+
+        if (userData.status === 'success') {
+            currentUser = {
+                userId: userData.data.user_id,
+                fullName: `${userData.data.fname} ${userData.data.lname}`,
+                fname: userData.data.fname,
+                lname: userData.data.lname,
+                email: userData.data.email,
+                phone: userData.data.phone || '',
+                role: userData.data.role_id,
+                priorityLevel: userData.data.priority_level,
+                isBanned: userData.data.is_banned,
+                cancellationCount: userData.data.cancellation_count
+            };
+
+            displayUserInfo();
+        } else {
+            showNotification('ไม่สามารถโหลดข้อมูลผู้ใช้ได้: ' + userData.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error loading user data:', error);
+        showNotification('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
+    }
+
+    // --- Tab Navigation Logic ---
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.dataset.tab;
+
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            button.classList.add('active');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+
+            if (tabId === 'booking-history') {
+                loadBookingHistory();
+            }
+        });
+    });
+
+    // 1.แก้ไขข้อมูล
+    toggleEditInfoBtn.addEventListener('click', async () => {
         if (!isEditingProfile) {
-            // --- โหมดเริ่มแก้ไข (กดปุ่ม 'Edit Profile') ---
-            originalName = fullNameInput.value;
-            originalEmail = userEmailInput.value;
+            // เริ่มแก้ไข
+            originalFname = currentUser.fname;
+            originalLname = currentUser.lname;
 
             fullNameInput.disabled = false;
-            userEmailInput.disabled = false;
+            userEmailInput.disabled = true;
 
             toggleEditInfoBtn.textContent = 'Save Changes';
             toggleEditInfoBtn.classList.add('save-btn');
             toggleEditInfoBtn.classList.remove('primary-btn');
             isEditingProfile = true;
 
-            // เพิ่มปุ่ม Cancel ชั่วคราว
+            // เพิ่มปุ่ม Cancel
             const cancelButton = document.createElement('button');
             cancelButton.type = 'button';
             cancelButton.textContent = 'Cancel';
             cancelButton.classList.add('btn', 'secondary-btn', 'cancel-edit-profile');
             cancelButton.addEventListener('click', () => {
-                fullNameInput.value = originalName;
-                userEmailInput.value = originalEmail;
+                fullNameInput.value = currentUser.fullName;
                 revertToEditMode();
             });
             formActionsDiv.appendChild(cancelButton);
 
         } else {
-            // --- โหมดบันทึก (กดปุ่ม 'Save Changes') ---
-            const newName = fullNameInput.value.trim();
-            const newEmail = userEmailInput.value.trim();
-            let changesMade = false;
+            // บันทึกการเปลี่ยนแปลง
+            const newFullName = fullNameInput.value.trim();
+            const nameParts = newFullName.split(' ');
 
-            // 1. จัดการการเปลี่ยนชื่อ
-            if (newName !== originalName) {
-                // **TODO: ส่งข้อมูลชื่อใหม่ไป Back-end**
-                currentUser.fullName = newName;
-                originalName = newName; // อัปเดต original
-                changesMade = true;
+            if (nameParts.length < 2) {
+                showNotification('กรุณากรอกชื่อและนามสกุล', 'error');
+                return;
             }
 
-            // 2. จัดการการเปลี่ยนอีเมล (ต้องมีการยืนยัน)
-            if (newEmail !== originalEmail) {
-                // เปิดฟิลด์ยืนยันอีเมลแทนการบันทึกทันที
-                newEmailConfirmInput.value = ''; // ล้างค่าในช่องยืนยัน
-                emailConfirmationFields.style.display = 'block';
-                toggleEditInfoBtn.style.display = 'none'; // ซ่อนปุ่ม Save Changes
+            const newFname = nameParts[0];
+            const newLname = nameParts.slice(1).join(' ');
 
-                if (changesMade) {
-                    alert(`Profile Name updated successfully to ${newName}. Please confirm the new Email.`);
+            if (newFname === originalFname && newLname === originalLname) {
+                showNotification('ไม่มีการเปลี่ยนแปลงข้อมูล', 'warning');
+                revertToEditMode();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}updateUser.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fname: newFname,
+                        lname: newLname,
+                        phone: currentUser.phone
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    currentUser.fname = newFname;
+                    currentUser.lname = newLname;
+                    currentUser.fullName = newFullName;
+                    showNotification('อัปเดตข้อมูลสำเร็จ!', 'success');
+                    revertToEditMode();
                 } else {
-                    alert('Please confirm the new Email address.');
+                    showNotification('เกิดข้อผิดพลาด: ' + result.message, 'error');
                 }
-                return; // หยุดการทำงานที่เหลือ
+            } catch (error) {
+                console.error('Update error:', error);
+                showNotification('ไม่สามารถอัปเดตข้อมูลได้', 'error');
             }
-
-            if (changesMade) {
-                alert(`Profile Name updated successfully to ${newName}.`);
-            } else {
-                alert('No changes made to Name or Email.');
-            }
-
-            // จบการแก้ไข (หากไม่มีการเปลี่ยนอีเมล)
-            revertToEditMode();
         }
     });
 
-    // ตรรกะการยืนยันอีเมล
-    sendVerificationBtn.addEventListener('click', () => {
-        const newEmail = userEmailInput.value.trim();
-        const newEmailConfirm = newEmailConfirmInput.value.trim();
-
-        if (newEmail !== newEmailConfirm) {
-            alert('Email fields do not match! Please confirm the new email correctly.');
-            return;
-        }
-
-        // **TODO: ส่งอีเมลใหม่ไป Back-end เพื่อให้ระบบส่งลิงก์ยืนยัน**
-        alert(`Verification link sent to ${newEmail}. Please check your inbox to complete the change.`);
-
-        // รีเซ็ตสถานะ
-        currentUser.email = newEmail;
-        originalEmail = newEmail;
-        revertToEditMode();
-    });
-
-
-    // ----------------------------------------------------
-    // 2. ฟีเจอร์เปลี่ยนรหัสผ่าน
-    // ----------------------------------------------------
-    const passwordForm = document.getElementById('password-form');
-
-    passwordForm.addEventListener('submit', (e) => {
+    // 2.เปลี่ยนรหัสผ่าน
+    passwordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const currentPass = document.getElementById('current-password').value;
         const newPass = document.getElementById('new-password').value;
         const confirmPass = document.getElementById('confirm-password').value;
 
         if (newPass !== confirmPass) {
-            alert('New password and confirm password do not match!');
+            showNotification('รหัสผ่านใหม่ไม่ตรงกัน!', 'error');
             return;
         }
         if (newPass.length < 6) {
-            alert('Password must be at least 6 characters long.');
+            showNotification('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร', 'error');
             return;
         }
 
-        // **TODO: ตรวจสอบรหัสผ่านเดิม และส่งข้อมูลไป Back-end**
-        alert('Password change request sent! System will verify your current password.');
-        passwordForm.reset();
+        try {
+            const response = await fetch(`${API_BASE}updatePassword.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    current_password: currentPass,
+                    new_password: newPass
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                showNotification('เปลี่ยนรหัสผ่านสำเร็จ!', 'success');
+                passwordForm.reset();
+            } else {
+                showNotification('เกิดข้อผิดพลาด: ' + result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Password update error:', error);
+            showNotification('ไม่สามารถเปลี่ยนรหัสผ่านได้', 'error');
+        }
     });
 
-    // ----------------------------------------------------
-    // 3. ฟีเจอร์ประวัติการจองและการจัดการ
-    // ----------------------------------------------------
-    const bookingTableBody = document.querySelector('#booking-table tbody');
-    const applyFilterBtn = document.getElementById('apply-filter-btn');
-    const filterDateInput = document.getElementById('filter-date');
-    const filterStatusSelect = document.getElementById('filter-status');
+    // 3.ประวัติการจอง
+    async function loadBookingHistory() {
+        try {
+            const response = await fetch(`${API_BASE}getUserBookings.php`);
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                bookings = result.data;
+                renderBookings(bookings);
+            } else {
+                showNotification('ไม่สามารถโหลดประวัติการจองได้: ' + result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Load bookings error:', error);
+            showNotification('เกิดข้อผิดพลาดในการโหลดประวัติการจอง', 'error');
+        }
+    }
 
     function renderBookings(data) {
         bookingTableBody.innerHTML = '';
         if (data.length === 0) {
-            bookingTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No booking history found.</td></tr>';
+            bookingTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">ไม่มีประวัติการจอง</td></tr>';
             return;
         }
 
         data.forEach(booking => {
             const row = bookingTableBody.insertRow();
-            // สำหรับ Responsive: เพิ่ม data-label ใน td
             row.innerHTML = `
-                <td data-label="Room">${booking.room}</td>
+                <td data-label="Room">${booking.room} (${booking.floor})</td>
                 <td data-label="Date">${booking.date}</td>
                 <td data-label="Time">${booking.time}</td>
-                <td data-label="Status"><span class="status ${booking.status}">${booking.status.toUpperCase()}</span></td>
+                <td data-label="Status"><span class="status ${booking.status}">${getStatusText(booking.status)}</span></td>
                 <td data-label="Actions" style="white-space: nowrap;">
-                    <button class="view-details-btn" data-id="${booking.id}">View Details</button>
+                    <button class="view-details-btn" data-id="${booking.id}">รายละเอียด</button>
                     ${booking.status === 'pending' || booking.status === 'confirmed' ?
-                    `<button class="btn secondary-btn cancel-booking-btn" data-id="${booking.id}">Cancel</button>` : ''
+                    `<button class="btn secondary-btn cancel-booking-btn" data-id="${booking.id}">ยกเลิก</button>` : ''
                 }
                 </td>
             `;
         });
 
-        // ผูก Event Listener สำหรับปุ่ม
         document.querySelectorAll('.view-details-btn').forEach(btn => {
             btn.addEventListener('click', handleViewDetailsBooking);
         });
         document.querySelectorAll('.cancel-booking-btn').forEach(btn => {
             btn.addEventListener('click', handleCancelBooking);
         });
+    }
+
+    function getStatusText(status) {
+        const statusMap = {
+            'pending': 'รอดำเนินการ',
+            'confirmed': 'ยืนยันแล้ว',
+            'completed': 'เสร็จสิ้น',
+            'cancelled': 'ยกเลิกแล้ว'
+        };
+        return (statusMap[status] || status).toUpperCase();
     }
 
     // ฟังก์ชันกรอง
@@ -242,34 +306,47 @@ document.addEventListener('DOMContentLoaded', () => {
         renderBookings(filtered);
     });
 
-    // ฟีเจอร์ดูรายละเอียดการจอง
+    // ดูรายละเอียด
     function handleViewDetailsBooking(event) {
         const bookingId = event.target.dataset.id;
-        alert(`Viewing details for booking ID: ${bookingId}`);
+        const booking = bookings.find(b => b.id == bookingId);
+        if (booking) {
+            alert(`รายละเอียดการจอง:\n\nห้อง: ${booking.room}\nวันที่: ${booking.date}\nเวลา: ${booking.time}\nวัตถุประสงค์: ${booking.purpose}\nจำนวนคน: ${booking.attendees} คน`);
+        }
     }
 
-    // ฟีเจอร์ยกเลิกการจอง
-    function handleCancelBooking(event) {
+
+
+    // ยกเลิกการจอง
+    async function handleCancelBooking(event) {
         const bookingId = parseInt(event.target.dataset.id);
         const booking = bookings.find(b => b.id === bookingId);
 
         if (!booking) return;
 
-        if (confirm(`Are you sure you want to cancel booking for room ${booking.room} on ${booking.date}?`)) {
-            // **TODO: ส่งคำขอไปยัง Back-end เพื่อยกเลิก**
+        if (confirm(`ต้องการยกเลิกการจองห้อง ${booking.room} วันที่ ${booking.date} ใช่หรือไม่?`)) {
+            try {
+                const response = await fetch(`${API_BASE}cancelBooking.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ booking_id: bookingId })
+                });
 
-            // อัปเดตข้อมูลจำลอง
-            const index = bookings.findIndex(b => b.id === bookingId);
-            if (index !== -1) {
-                bookings[index].status = 'cancelled';
-                alert(`Booking ID: ${bookingId} has been cancelled.`);
+                const result = await response.json();
 
-                // อัปเดตตารางโดยเรียก filter
-                applyFilterBtn.click();
+                if (result.status === 'success') {
+                    showNotification('ยกเลิกการจองสำเร็จ', 'success');
+                    loadBookingHistory();
+                } else {
+                    showNotification('ไม่สามารถยกเลิกการจองได้: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Cancel booking error:', error);
+                showNotification('เกิดข้อผิดพลาดในการยกเลิกการจอง', 'error');
             }
         }
     }
 
-    // เริ่มต้นให้แสดงแท็บ Profile เมื่อโหลดหน้า (เรียกคลิกแท็บแรก)
+    // เริ่มต้นให้แสดงแท็บ Profile
     document.getElementById('tab-profile').click();
 });
