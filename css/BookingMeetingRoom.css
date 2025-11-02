@@ -227,7 +227,6 @@ input:focus {
     transform: none;
 }
 
-/* Empty State */
 .empty-state {
     text-align: center;
     padding: 60px 20px;

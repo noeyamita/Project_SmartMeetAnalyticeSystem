@@ -8,7 +8,7 @@ header("Access-Control-Allow-Credentials: true");
 if (!isset($_SESSION['user_id'])) {
     echo json_encode([
         "status" => "error", 
-        "message" => "ไม่พบ Session User ID กรุณาเข้าสู่ระบบใหม่" // เปลี่ยนข้อความเป็นแจ้งให้ล็อกอิน
+        "message" => "ไม่พบ Session User ID กรุณาเข้าสู่ระบบใหม่"
     ]);
     exit;
 }
@@ -23,19 +23,83 @@ header("Content-Type: application/json");
 require_once __DIR__ . '/../config/config.php';
 
 $data = json_decode(file_get_contents("php://input"), true);
-if (!$data) {
-    echo json_encode(["status" => "error", "message" => "Invalid JSON data"]);
+if (!$data || !isset($data['room_id'], $data['start_time'], $data['end_time'])) {
+    echo json_encode(["status" => "error", "message" => "Invalid or missing JSON data"]);
     exit;
 }
 
-
 // แปลงเวลาจาก "09:00:00" เป็น 9.00
 function timeToDecimal($time) {
-    list($hour, $minute) = explode(':', $time);
-    return floatval($hour) + (floatval($minute) / 60);
+    if (is_numeric($time)) {
+        return floatval($time); 
+    }
+    // ถ้าเป็นรูปแบบ string time เช่น "09:00:00"
+    if (strpos($time, ':') !== false) {
+        list($hour, $minute) = explode(':', $time);
+        return floatval($hour) + (floatval($minute) / 60);
+    }
+    return 0.0; // ค่าเริ่มต้นถ้าแปลงไม่ได้
 }
 
+// แปลงเวลาเริ่มต้นและสิ้นสุดที่รับมาจากผู้ใช้ (จาก "HH:MM:SS" เป็น Decimal)
+$bookingStartTimeDecimal = timeToDecimal($data['start_time']);
+$bookingEndTimeDecimal = timeToDecimal($data['end_time']);
+
+//ตรวจสอบเงื่อนไขเวลาเปิด-ปิดห้อง และ การจองที่ทับซ้อน 
 try {
+    //ดึงเวลาเปิด-ปิดของห้อง
+    $roomStmt = $pdo->prepare("
+        SELECT open_time, close_time 
+        FROM Meeting_Rooms 
+        WHERE room_id = :room_id
+    ");
+    $roomStmt->execute([":room_id" => $data['room_id']]);
+    $roomInfo = $roomStmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$roomInfo) {
+        echo json_encode(["status" => "error", "message" => "Room not found."]);
+        exit;
+    }
+
+    $roomStartTime = floatval($roomInfo['open_time']);
+    $roomEndTime = floatval($roomInfo['close_time']);
+
+    //ตรวจสอบว่าเวลาที่จองอยู่ภายในช่วงเวลาเปิด-ปิดของห้องหรือไม่
+    //start_time ต้อง >= open_time และ end_time ต้อง <= close_time
+    if ($bookingStartTimeDecimal < $roomStartTime || $bookingEndTimeDecimal > $roomEndTime) {
+        echo json_encode([
+            "status" => "error", 
+            "message" => "การจองอยู่นอกเวลาทำการของห้องประชุม (" . $roomInfo['open_time'] . " - " . $roomInfo['close_time'] . ")"
+        ]);
+        exit;
+    }
+
+    //ตรวจสอบการจองที่ทับซ้อนในห้องเดิมในช่วงเวลาเดียวกัน
+    //ใช้ตาราง Bookings และเงื่อนไขการทับซ้อน: (A.start < B.end) AND (A.end > B.start)
+    $overlapStmt = $pdo->prepare("
+        SELECT COUNT(*) 
+        FROM Bookings 
+        WHERE room_id = :room_id 
+        AND booking_date = :booking_date 
+        AND status = 1 -- เฉพาะการจองที่ 'Active' (status 1)
+        AND (
+            (start_time < :end_time AND end_time > :start_time)
+        )
+    ");
+
+    $overlapStmt->execute([
+        ":room_id" => $data['room_id'],
+        ":booking_date" => $data['booking_date'],
+        ":start_time" => $bookingStartTimeDecimal,
+        ":end_time" => $bookingEndTimeDecimal
+    ]);
+
+    if ($overlapStmt->fetchColumn() > 0) {
+        echo json_encode(["status" => "error", "message" => "ช่องเวลาที่เลือกถูกจองแล้ว."]);
+        exit;
+    }
+
+    //เพิ่มการจองหากผ่านการตรวจสอบทั้งหมดแล้ว
     $stmt = $pdo->prepare("
         INSERT INTO Bookings 
         (user_id, room_id, booking_date, start_time, end_time, purpose, attendees_count, table_layout, status, is_moved, original_room_id, created_at, updated_at)
@@ -43,18 +107,19 @@ try {
     ");
 
     $stmt->execute([
-        ":user_id" => $userId, // ใช้ $userId (จาก Session)
+        ":user_id" => $userId, 
         ":room_id" => $data['room_id'],
         ":booking_date" => $data['booking_date'],
-        ":start_time" => timeToDecimal($data['start_time']),
-        ":end_time" => timeToDecimal($data['end_time']),
+        ":start_time" => $bookingStartTimeDecimal, 
+        ":end_time" => $bookingEndTimeDecimal,   
         ":purpose" => $data['purpose'],
         ":attendees_count" => $data['attendees_count'],
         ":table_layout" => $data['table_layout']
     ]);
 
-    echo json_encode(["status" => "success", "message" => "Booking created successfully"]);
+    echo json_encode(["status" => "success", "message" => "การจองสำเร็จ"]);
 } catch (PDOException $e) {
+    // ในกรณีที่เกิดข้อผิดพลาดจากฐานข้อมูล
     echo json_encode(["status" => "error", "message" => $e->getMessage()]);
 }
 ?>

@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<html lang="th">
 
 <head>
     <meta charset="UTF-8">
@@ -7,6 +6,7 @@
     <title>Sidebar</title>
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
 
 <body>
     <div class="sidebar">
@@ -16,44 +16,44 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a href="http://localhost:8080/BookingMeetingRoom.html" target="_parent" class="nav-item active">
+            <a href="BookingMeetingRoom.html" target="_parent" class="nav-item" data-page="booking">
                 <i class="fas fa-calendar-alt"></i>
                 <span>การจองห้องประชุม</span>
             </a>
 
-            <a href="http://localhost:8080/profile.html" target="_parent" class="nav-item">
+            <a href="profile.html" target="_parent" class="nav-item" data-page="profile">
                 <i class="fas fa-user"></i>
                 <span>โปรไฟล์</span>
             </a>
 
-            <a href="html/notifications.html" target="_parent" class="nav-item">
+            <a href="notifications.html" target="_parent" class="nav-item" data-page="notifications">
                 <i class="fas fa-bell"></i>
                 <span>การแจ้งเตือน</span>
                 <span class="badge">1</span>
             </a>
 
-            <a href="html/room-requests.html" target="_parent" class="nav-item">
+            <a href="room-requests.html" target="_parent" class="nav-item" data-page="room-requests">
                 <i class="fas fa-clipboard-list"></i>
                 <span>คำขอใช้ห้องแทน</span>
                 <span class="badge">3</span>
             </a>
 
-            <a href="html/permissions.html" target="_parent" class="nav-item">
+            <a href="permissions.html" target="_parent" class="nav-item" data-page="permissions">
                 <i class="fas fa-key"></i>
                 <span>จัดการสิทธิ์</span>
             </a>
 
-            <a href="html/user-management.html" target="_parent" class="nav-item">
+            <a href="user-management.html" target="_parent" class="nav-item" data-page="user-management">
                 <i class="fas fa-user-slash"></i>
                 <span>แบน/ปลดแบน Users</span>
             </a>
 
-            <a href="html/room-management.html" target="_parent" class="nav-item">
+            <a href="room-management.html" target="_parent" class="nav-item" data-page="room-management">
                 <i class="fa-solid fa-screwdriver-wrench"></i>
                 <span>จัดการห้องประชุม</span>
             </a>
 
-            <a href="html/settings.html" target="_parent" class="nav-item">
+            <a href="settings.html" target="_parent" class="nav-item" data-page="settings">
                 <i class="fas fa-chart-line"></i>
                 <span>Dashboard</span>
             </a>
@@ -66,6 +66,8 @@
             </a>
         </div>
     </div>
+    <script src="/js/sidebar.js"></script>
+
 </body>
 
 </html>

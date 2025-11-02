@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // 4. เข้ารหัสรหัสผ่านก่อนเก็บ (สำคัญมาก)
+        // 4. เข้ารหัสรหัสผ่านก่อนเก็บข้อมูล
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
         // 5. บันทึกลงฐานข้อมูล (ใช้ Prepared Statement)

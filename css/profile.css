@@ -1,10 +1,7 @@
 :root {
     --primary-color: #5b6de2;
-    /* สีน้ำเงินม่วงหลัก */
     --secondary-color: #8c7aea;
-    /* สีม่วงรอง */
     --background-gradient: linear-gradient(135deg, #6c5ce7, #8e5bd9);
-    /* Gradient จากรูป 3 */
     --text-color: #343a40;
     --light-text-color: #6c757d;
     --border-color: #e0e0e0;
@@ -15,25 +12,32 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--background-gradient);
-    margin: 0;
+    background: #f5f6fa;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
+}
+
+/* Sidebar Iframe */
+.sidebar-frame {
+    width: 260px;
+    height: 100vh;
+    border: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+}
+
+.main-content {
+    margin-left: 260px;
+    padding: 30px;
+    width: calc(100% - 260px);
     min-height: 100vh;
-    padding: 40px 20px;
 }
 
-.main-container {
-    width: 100%;
-    /* ปรับขนาดให้เหมาะสมกับภาพตัวอย่าง */
-    max-width: 800px;
-    background: var(--card-bg);
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
 }
-
 .page-title {
     color: var(--text-color);
     font-size: 2.5em;
@@ -42,7 +46,7 @@ body {
     font-weight: 700;
 }
 
-/* --- Tab Navigation --- */
+/* --- ปุ่มเมนู --- */
 .tab-navigation {
     display: flex;
     padding: 0 40px;
@@ -72,7 +76,7 @@ body {
     border-bottom-color: var(--primary-color);
 }
 
-/* --- Content Panel --- */
+/* --- หน้าจอคอนเทนท์ --- */
 .content-panel {
     padding: 40px;
 }
@@ -85,7 +89,7 @@ body {
     display: block;
 }
 
-/* --- Card Styling --- */
+/* --- การ์ด --- */
 .card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -108,7 +112,7 @@ body {
     margin-bottom: 25px;
 }
 
-/* --- Form Elements --- */
+/* ฟอร์ม */
 label {
     display: block;
     margin-top: 20px;
@@ -152,7 +156,7 @@ input[disabled] {
     gap: 10px;
 }
 
-/* --- Buttons --- */
+/* ปุ่ม */
 .btn {
     padding: 12px 25px;
     border: none;
@@ -162,7 +166,6 @@ input[disabled] {
     font-size: 1em;
     transition: background-color 0.3s, transform 0.2s;
     white-space: nowrap;
-    /* ป้องกันข้อความปุ่มถูกตัด */
 }
 
 .primary-btn {
@@ -176,7 +179,7 @@ input[disabled] {
 }
 
 .save-btn {
-    /* สำหรับปุ่ม Save Changes เมื่ออยู่ในโหมดแก้ไข */
+    /*ปุ่ม Save Changes */
     background-color: #28a745;
     color: white;
 }
@@ -223,7 +226,7 @@ input[disabled] {
     border-bottom: none;
 }
 
-/* Status Badges */
+/* สถานะ */
 .status {
     padding: 5px 10px;
     border-radius: 4px;
@@ -257,7 +260,6 @@ input[disabled] {
     cursor: pointer;
     font-size: 0.95em;
     margin-right: 15px;
-    /* เว้นระยะห่างจากปุ่ม Cancel */
 }
 
 .view-details-btn:hover {

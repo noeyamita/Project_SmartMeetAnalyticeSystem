@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการห้องประชุม - Room Management</title>
+    <link rel="stylesheet" href="css/room-management.css">
+</head>
+<body>
+    <iframe src="sidebar.html?page=booking" class="sidebar-frame"></iframe>
+    <main class="main-content">
+        <div class="container">
+            <header>
+                <h1>📋 ระบบจัดการห้องประชุม</h1>
+                <p class="subtitle">Meeting Room Management System</p>
+            </header>
+
+            <div class="content">
+                <!-- ฟอร์มเพิ่ม/แก้ไขห้อง -->
+                <section class="form-section">
+                    <h2 id="formTitle">เพิ่มห้องประชุมใหม่</h2>
+                    <form id="roomForm">
+                        <input type="hidden" id="roomId">
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="roomName">ชื่อห้อง *</label>
+                                <input type="text" id="roomName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="capacity">ความจุคน *</label>
+                                <input type="number" id="capacity" min="1" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="roomSize">ขนาดห้อง (ตร.ม.) *</label>
+                                <input type="number" id="roomSize" step="0.01" min="0" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="floorNumber">ชั้น,ห้อง *</label>
+                                <input type="text" id="floorNumber" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="status">สถานะ *</label>
+                                <select id="status" required>
+                                    <option value="">กำลังโหลด...</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="openTime">เวลาเปิด *</label>
+                                <input type="time" id="openTime" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="closeTime">เวลาปิด *</label>
+                                <input type="time" id="closeTime" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="imageFile">รูปภาพห้องประชุม</label>
+                                <input type="file" id="imageFile" accept="image/*">
+                                <small class="file-info">รองรับไฟล์: JPG, PNG, GIF (ไม่เกิน 2MB)</small>
+                                <div id="imagePreview" class="image-preview"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="description">รายละเอียด</label>
+                            <textarea id="description" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <span class="btn-icon">💾</span> บันทึก
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="cancelBtn">
+                                <span class="btn-icon">✖️</span> ยกเลิก
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- ตารางแสดงรายการห้อง -->
+                <section class="table-section">
+                    <div class="table-header">
+                        <h2>รายการห้องประชุม</h2>
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="🔍 ค้นหาห้อง...">
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="roomTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>รูปภาพ</th>
+                                    <th>ชื่อห้อง</th>
+                                    <th>ความจุคน</th>
+                                    <th>ขนาด (ตร.ม.)</th>
+                                    <th>ชั้น,ห้อง</th>
+                                    <th>สถานะ</th>
+                                    <th>เวลาเปิด-ปิด</th>
+                                    <th>จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roomTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center">กำลังโหลดข้อมูล...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="js/room-management.js"></script>
+</body>
+</html>
