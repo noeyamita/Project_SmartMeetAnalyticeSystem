@@ -9,7 +9,6 @@
 </head>
 
 <body>
-    <!-- Sidebar Include -->
     <iframe src="sidebar.html?page=booking" class="sidebar-frame"></iframe>
 
     <main class="main-content">
@@ -54,12 +53,11 @@
         </div>
     </main>
 
-    <!-- Modal สำหรับจองห้อง -->
     <div id="bookingModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>ยืนยันการจองห้องประชุม</h3>
-                <p class="muted" id="modalRoomInfo"></p>
+                <p class="muted" id="modalRoomInfo"></p> 
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -72,6 +70,18 @@
                         <textarea id="meeting_description" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea>
                     </label>
                 </div>
+                <div class="form-group">
+                    <label>รูปแบบการจัดโต๊ะ</label>
+                    <div id="tableLayoutOptions">
+                        </div>
+                </div>
+
+                <div class="form-group">
+                    <label>อุปกรณ์ที่ต้องการใช้</label>
+                    <div id="equipmentOptions">
+                        </div>
+                </div>
+
             </div>
             <div class="modal-footer">
                 <button class="btn" onclick="closeModal()">ยกเลิก</button>

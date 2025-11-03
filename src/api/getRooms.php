@@ -2,56 +2,80 @@
 header("Content-Type: application/json");
 require_once __DIR__ . '/../config/config.php';
 
-// เปิด error log (ลบออกหลังจาก debug เสร็จ)
-error_log("=== getRooms.php called ===");
-error_log("GET params: " . print_r($_GET, true));
+// ✅ ฟังก์ชันสำหรับแปลง Decimal Hour (9.00) -> HH:MM (09:00) ที่แก้ไข
+function decimalToTime($decimal) {
+    if (!is_numeric($decimal)) return null;
+    $hours = floor($decimal);
+    $minutes = round(($decimal - $hours) * 60); 
+
+    if ($minutes >= 60) {
+        $hours += floor($minutes / 60);
+        $minutes = $minutes % 60;
+    }
+    $hours = $hours % 24; 
+    
+    return sprintf("%02d:%02d", $hours, $minutes);
+}
+
 
 try {
-    // รับค่าจำนวนผู้เข้าร่วมจาก parameter ชื่อ capacity
     $capacity = isset($_GET['capacity']) ? intval($_GET['capacity']) : 0;
 
-    error_log("Capacity value: " . $capacity);
+    $sql = "
+        SELECT 
+            room_id,
+            room_name,
+            capacity,
+            room_size,
+            floor_number,
+            status,
+            image_url,
+            description,
+            open_time,
+            close_time,
+            created_at,
+            updated_at
+        FROM Meeting_Rooms
+    ";
 
-    // ถ้ามีการส่งจำนวนผู้เข้าร่วมมา ให้แสดงเฉพาะห้องที่รองรับได้
     if ($capacity > 0) {
-        $stmt = $pdo->prepare("
-            SELECT room_id, room_name, capacity, room_size, floor_number, status, image_url,
-                   description, open_time, close_time, created_at, updated_at
-            FROM Meeting_Rooms
-            WHERE capacity >= :capacity
-            ORDER BY capacity ASC
-        ");
+        $sql .= " WHERE capacity >= :capacity ORDER BY capacity ASC";
+        $stmt = $pdo->prepare($sql);
         $stmt->execute(['capacity' => $capacity]);
-        error_log("Query with filter: capacity >= " . $capacity);
     } else {
-        // ถ้าไม่ส่งมาก็แสดงทั้งหมด
-        $stmt = $pdo->query("
-            SELECT room_id, room_name, capacity, room_size, floor_number, status, image_url,
-                   description, open_time, close_time, created_at, updated_at
-            FROM Meeting_Rooms
-            ORDER BY room_id ASC
-        ");
-        error_log("Query without filter");
+        $sql .= " ORDER BY room_id ASC";
+        $stmt = $pdo->query($sql);
     }
 
     $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    error_log("Rooms found: " . count($rooms));
-    
-    if (count($rooms) > 0) {
-        error_log("First room: " . print_r($rooms[0], true));
+
+    foreach ($rooms as &$room) {
+        $room['status'] = isset($room['status']) ? (int)$room['status'] : 0;
+
+        // ✅ แปลงค่าเวลาจาก decimal (9.00) -> HH:MM โดยใช้ฟังก์ชันที่ถูกต้อง
+        if (!empty($room['open_time']) && is_numeric($room['open_time'])) {
+            $room['open_time'] = decimalToTime($room['open_time']);
+        }
+        if (!empty($room['close_time']) && is_numeric($room['close_time'])) {
+            $room['close_time'] = decimalToTime($room['close_time']);
+        }
+
+        // ✅ ถ้าไม่มีรูปภาพให้เป็น null
+        $room['image_url'] = !empty($room['image_url']) ? $room['image_url'] : null;
+
+        // ป้องกัน error จาก JS
+        $room['facilities'] = [];
     }
 
     echo json_encode([
-        "status" => "success", 
+        "status" => "success",
         "data" => $rooms,
-        "count" => count($rooms),
-        "filter_capacity" => $capacity
-    ]);
+        "count" => count($rooms)
+    ], JSON_UNESCAPED_UNICODE);
 
 } catch (PDOException $e) {
-    error_log("ERROR: " . $e->getMessage());
     echo json_encode([
-        "status" => "error", 
+        "status" => "error",
         "message" => $e->getMessage()
     ]);
 }
