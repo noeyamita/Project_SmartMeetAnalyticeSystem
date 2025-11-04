@@ -1,82 +1,110 @@
 <?php
-header("Content-Type: application/json");
-require_once __DIR__ . '/../config/config.php';
+require_once '../database.php';
+$database = new Database();
+$pdo = $database->getConnection();
 
-// ✅ ฟังก์ชันสำหรับแปลง Decimal Hour (9.00) -> HH:MM (09:00) ที่แก้ไข
-function decimalToTime($decimal) {
-    if (!is_numeric($decimal)) return null;
-    $hours = floor($decimal);
-    $minutes = round(($decimal - $hours) * 60); 
+header('Content-Type: application/json');
 
-    if ($minutes >= 60) {
-        $hours += floor($minutes / 60);
-        $minutes = $minutes % 60;
-    }
-    $hours = $hours % 24; 
-    
-    return sprintf("%02d:%02d", $hours, $minutes);
+// ===== รับค่าจาก request =====
+$date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+$start_time = isset($_GET['start_time']) ? $_GET['start_time'] : null;
+$end_time = isset($_GET['end_time']) ? $_GET['end_time'] : null;
+$capacity = isset($_GET['capacity']) ? intval($_GET['capacity']) : 0; // ✅ เพิ่มการรับค่าจำนวนคน
+
+// ✅ ดึงข้อมูลห้องที่จุคนได้ตามที่ต้องการ
+$sql = "SELECT * FROM Meeting_Rooms";
+
+// ✅ ถ้ามีการระบุจำนวนคน ให้กรองเฉพาะห้องที่จุได้มากกว่าหรือเท่ากับ
+if ($capacity > 0) {
+    $sql .= " WHERE capacity >= :capacity";
 }
 
+$sql .= " ORDER BY room_id ASC";
 
-try {
-    $capacity = isset($_GET['capacity']) ? intval($_GET['capacity']) : 0;
+$stmt = $pdo->prepare($sql);
 
-    $sql = "
-        SELECT 
-            room_id,
-            room_name,
-            capacity,
-            room_size,
-            floor_number,
-            status,
-            image_url,
-            description,
-            open_time,
-            close_time,
-            created_at,
-            updated_at
-        FROM Meeting_Rooms
-    ";
+// ✅ Bind parameter ถ้ามีการกรอง capacity
+if ($capacity > 0) {
+    $stmt->bindParam(':capacity', $capacity, PDO::PARAM_INT);
+}
 
-    if ($capacity > 0) {
-        $sql .= " WHERE capacity >= :capacity ORDER BY capacity ASC";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute(['capacity' => $capacity]);
+$stmt->execute();
+$rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$data = [];
+
+// ฟังก์ชันทำความสะอาด URL รูปภาพ
+function cleanImagePath($path) {
+    if (!$path) return '';
+    if (strpos($path, 'http://') === 0 || strpos($path, 'https://') === 0) return $path;
+    $path = str_replace(['uploads/rooms/', 'uploads/'], '', $path);
+    return 'uploads/rooms/' . ltrim($path, '/');
+}
+
+foreach ($rooms as $room) {
+    $availability_status = 'available';
+    $availability_text = 'ว่าง';
+
+    // ถ้าห้องปิดปรับปรุง
+    if ($room['status'] == 3) {
+        $availability_status = 'closed';
+        $availability_text = 'ปิดปรับปรุง';
     } else {
-        $sql .= " ORDER BY room_id ASC";
-        $stmt = $pdo->query($sql);
+        // ตรวจสอบว่าห้องนี้ถูกจองในช่วงเวลาที่ผู้ใช้ระบุไหม
+        if ($date && $start_time && $end_time) {
+            $sqlCheck = "SELECT COUNT(*) 
+                         FROM Bookings
+                         WHERE room_id = :room_id
+                         AND booking_date = :date
+                         AND status IN (1, 'confirmed', 'อนุมัติ')
+                         AND (
+                             (start_time < :end_time AND end_time > :start_time)
+                         )";
+            $stmtCheck = $pdo->prepare($sqlCheck);
+            $stmtCheck->execute([
+                ':room_id' => $room['room_id'],
+                ':date' => $date,
+                ':start_time' => $start_time,
+                ':end_time' => $end_time
+            ]);
+
+            $isBooked = $stmtCheck->fetchColumn() > 0;
+
+            if ($isBooked) {
+                $availability_status = 'booked';
+                $availability_text = 'ถูกจอง';
+            } elseif ($room['status'] == 2) {
+                $availability_status = 'booked';
+                $availability_text = 'ถูกจอง';
+            }
+        } elseif ($room['status'] == 2) {
+            $availability_status = 'booked';
+            $availability_text = 'ถูกจอง';
+        }
     }
 
-    $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // ทำความสะอาด path รูปภาพ
+    $room['image_url'] = cleanImagePath($room['image_url']);
 
-    foreach ($rooms as &$room) {
-        $room['status'] = isset($room['status']) ? (int)$room['status'] : 0;
-
-        // ✅ แปลงค่าเวลาจาก decimal (9.00) -> HH:MM โดยใช้ฟังก์ชันที่ถูกต้อง
-        if (!empty($room['open_time']) && is_numeric($room['open_time'])) {
-            $room['open_time'] = decimalToTime($room['open_time']);
-        }
-        if (!empty($room['close_time']) && is_numeric($room['close_time'])) {
-            $room['close_time'] = decimalToTime($room['close_time']);
-        }
-
-        // ✅ ถ้าไม่มีรูปภาพให้เป็น null
-        $room['image_url'] = !empty($room['image_url']) ? $room['image_url'] : null;
-
-        // ป้องกัน error จาก JS
-        $room['facilities'] = [];
-    }
-
-    echo json_encode([
-        "status" => "success",
-        "data" => $rooms,
-        "count" => count($rooms)
-    ], JSON_UNESCAPED_UNICODE);
-
-} catch (PDOException $e) {
-    echo json_encode([
-        "status" => "error",
-        "message" => $e->getMessage()
-    ]);
+    // เพิ่มข้อมูลใน array
+    $data[] = [
+        'room_id' => $room['room_id'],
+        'room_name' => $room['room_name'],
+        'capacity' => $room['capacity'],
+        'room_size' => $room['room_size'],
+        'floor_number' => $room['floor_number'],
+        'status' => $room['status'],
+        'image_url' => $room['image_url'],
+        'description' => $room['description'],
+        'open_time' => $room['open_time'],
+        'close_time' => $room['close_time'],
+        'availability_status' => $availability_status,
+        'availability_text' => $availability_text
+    ];
 }
-?>
+
+// ส่งผลลัพธ์กลับ
+echo json_encode([
+    'status' => 'success',
+    'data' => $data
+], JSON_UNESCAPED_UNICODE);

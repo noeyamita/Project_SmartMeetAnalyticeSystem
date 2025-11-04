@@ -611,3 +611,221 @@ input[type="radio"] {
 ::-webkit-scrollbar-thumb:hover {
     background: #95a5a6;
 }
+
+/* ================================
+   สถานะห้อง 3 แบบ
+   ================================ */
+
+/* 1. ห้องว่าง (Available) */
+.chip.available {
+    background-color: #10b981; /* เขียว */
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.room-card.available {
+    border: 2px solid #10b981;
+    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+}
+
+.room-card.available:hover {
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+    transform: translateY(-4px);
+}
+
+/* 2. ห้องถูกจอง (Booked) */
+.chip.booked {
+    background-color: #ef4444; /* แดง */
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+.room-card.unavailable {
+    border: 2px solid #e5e7eb;
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    opacity: 0.75;
+}
+
+.room-card.unavailable .btn.primary {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.room-card.unavailable .btn.primary:hover {
+    background-color: #9ca3af;
+    transform: none;
+}
+
+/* 3. ห้องปิดปรับปรุง (Closed) */
+.chip.closed {
+    background-color: #f59e0b; /* ส้ม */
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+}
+
+.room-card.closed {
+    border: 2px solid #f59e0b;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    opacity: 0.8;
+    position: relative;
+}
+
+.room-card.closed::after {
+    content: '🔧 ปิดปรับปรุง';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #f59e0b;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+/* ================================
+   Status Badge
+   ================================ */
+.status-badge {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.status-badge .chip {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* ================================
+   Room Card Base Styles
+   ================================ */
+.room-card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.room-image {
+    width: 100%;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    background-color: #e5e7eb;
+}
+
+.room-image.no-image {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: white;
+}
+
+.room-image.no-image::after {
+    content: '🏢';
+}
+
+.room-details {
+    padding: 16px;
+}
+
+.room-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #1f2937;
+}
+
+.operating-hours {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.room-cap {
+    font-size: 14px;
+    color: #4b5563;
+    margin-bottom: 12px;
+}
+
+.room-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* ================================
+   Button Styles
+   ================================ */
+.btn.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn.primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn.primary:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* ================================
+   Loading & Empty States
+   ================================ */
+.loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    color: #6b7280;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #9ca3af;
+    font-size: 16px;
+}
+
+.empty-state p {
+    margin-top: 16px;
+    color: #6b7280;
+}
