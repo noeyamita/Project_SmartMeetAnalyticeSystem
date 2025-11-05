@@ -12,48 +12,51 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <i class="fas fa-bars"></i>
-            <span>Menu Admin</span>
+            <span id="menuTitle">Menu</span>
         </div>
 
         <nav class="sidebar-nav">
-            <a href="BookingMeetingRoom.html" target="_parent" class="nav-item" data-page="booking">
+            <!-- Available for all roles -->
+            <a href="BookingMeetingRoom.html" target="_parent" class="nav-item" data-page="booking" data-roles="Admin,Executive,Normal">
                 <i class="fas fa-calendar-alt"></i>
                 <span>การจองห้องประชุม</span>
             </a>
 
-            <a href="profile.html" target="_parent" class="nav-item" data-page="profile">
+            <a href="profile.html" target="_parent" class="nav-item" data-page="profile" data-roles="Admin,Executive,Normal">
                 <i class="fas fa-user"></i>
                 <span>โปรไฟล์</span>
             </a>
 
-            <a href="notifications.html" target="_parent" class="nav-item" data-page="notifications">
+            <a href="notifications.html" target="_parent" class="nav-item" data-page="notifications" data-roles="Admin,Executive,Normal">
                 <i class="fas fa-bell"></i>
                 <span>การแจ้งเตือน</span>
                 <span class="badge">1</span>
             </a>
 
-            <a href="room-requests.html" target="_parent" class="nav-item" data-page="room-requests">
+            <!-- Admin only -->
+            <a href="room-requests.html" target="_parent" class="nav-item" data-page="room-requests" data-roles="Admin">
                 <i class="fas fa-clipboard-list"></i>
                 <span>คำขอใช้ห้องแทน</span>
                 <span class="badge">3</span>
             </a>
 
-            <a href="permissions.html" target="_parent" class="nav-item" data-page="permissions">
+            <a href="permissions.html" target="_parent" class="nav-item" data-page="permissions" data-roles="Admin">
                 <i class="fas fa-key"></i>
                 <span>จัดการสิทธิ์</span>
             </a>
 
-            <a href="user-management.html" target="_parent" class="nav-item" data-page="user-management">
+            <a href="user-management.html" target="_parent" class="nav-item" data-page="user-management" data-roles="Admin">
                 <i class="fas fa-user-slash"></i>
                 <span>แบน/ปลดแบน Users</span>
             </a>
 
-            <a href="room-management.html" target="_parent" class="nav-item" data-page="room-management">
+            <a href="room-management.html" target="_parent" class="nav-item" data-page="room-management" data-roles="Admin">
                 <i class="fa-solid fa-screwdriver-wrench"></i>
                 <span>จัดการห้องประชุม</span>
             </a>
 
-            <a href="settings.html" target="_parent" class="nav-item" data-page="settings">
+            <!-- Admin and Executive -->
+            <a href="settings.html" target="_parent" class="nav-item" data-page="settings" data-roles="Admin,Executive">
                 <i class="fas fa-chart-line"></i>
                 <span>Dashboard</span>
             </a>

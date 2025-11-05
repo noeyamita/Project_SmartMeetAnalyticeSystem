@@ -2,10 +2,7 @@
 session_start();
 header('Content-Type: application/json');
 
-// ✅ ปรับ path ให้ตรงตำแหน่งจริงของไฟล์ database.php
 require_once __DIR__ . '/../database.php'; 
-// ถ้าไฟล์คุณอยู่ที่ src/api/database.php ให้แก้เป็น
-// require_once __DIR__ . '/database.php';
 
 $database = new Database();
 $pdo = $database->getConnection();
@@ -29,13 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // ✅ ตรวจสอบรหัสผ่านแบบเข้ารหัส
         if (!password_verify($password, $user['user_password'])) {
             echo json_encode(['success' => false, 'message' => 'รหัสผ่านไม่ถูกต้อง']);
             exit;
         }
 
-        // ✅ สร้าง session หลังเข้าสู่ระบบสำเร็จ
+        // สร้าง session หลังเข้าสู่ระบบสำเร็จ
         $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['fname'] = $user['fname'];
         $_SESSION['lname'] = $user['lname'];
@@ -44,9 +40,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         session_regenerate_id(true);
 
+        // ✅ ดึงชื่อ role จากตาราง role
+        $roleStmt = $pdo->prepare("SELECT role_name FROM role WHERE role_id = ?");
+        $roleStmt->execute([$user['role_id']]);
+        $role = $roleStmt->fetch(PDO::FETCH_ASSOC);
+
         echo json_encode([
             'success' => true,
-            'message' => 'เข้าสู่ระบบสำเร็จ'
+            'message' => 'เข้าสู่ระบบสำเร็จ',
+            'role_id' => $user['role_id'],
+            'role_name' => $role['role_name'] ?? 'Normal', // ส่งชื่อ role กลับไปด้วย
+            'user_name' => $user['fname'] . ' ' . $user['lname']
         ]);
 
     } catch (PDOException $e) {

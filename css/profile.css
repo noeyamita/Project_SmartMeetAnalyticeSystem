@@ -235,6 +235,32 @@ input[disabled] {
     font-size: 0.85em;
 }
 
+/* สถานะการจอง - ตาม booking_status table */
+.status-1 {
+    /* จองสำเร็จ */
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-2 {
+    /* ยกเลิก */
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-3 {
+    /* โดนย้าย */
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
+.status-4 {
+    /* รอยืนยันคำขอย้ายห้อง */
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* Legacy status classes (สำหรับ backward compatibility) */
 .completed {
     background-color: #d4edda;
     color: #155724;
@@ -248,20 +274,4 @@ input[disabled] {
 .cancelled {
     background-color: #f8d7da;
     color: #721c24;
-}
-
-.view-details-btn {
-    color: var(--primary-color);
-    text-decoration: none;
-    font-weight: 600;
-    padding: 0;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 0.95em;
-    margin-right: 15px;
-}
-
-.view-details-btn:hover {
-    text-decoration: underline;
 }

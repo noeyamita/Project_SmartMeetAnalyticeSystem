@@ -183,7 +183,6 @@ async function confirmBooking() {
     }
 
     const meetingTitle = document.getElementById('meeting_title').value.trim();
-    const meetingDescription = document.getElementById('meeting_description').value.trim();
     const date = document.getElementById('date').value;
     const startTime = document.getElementById('start_time').value;
     const endTime = document.getElementById('end_time').value;
@@ -229,7 +228,6 @@ async function confirmBooking() {
         end_time: endTime,
         capacity: parseInt(capacity),
         purpose: meetingTitle,
-        description: meetingDescription,
         table_layout_id: parseInt(tableLayoutId),
         equipments: selectedEquipments.map(id => parseInt(id))
     };
@@ -393,7 +391,6 @@ function closeModal() {
     document.getElementById('bookingModal').classList.remove('active');
     selectedRoom = null;
     document.getElementById('meeting_title').value = '';
-    document.getElementById('meeting_description').value = '';
     document.querySelectorAll('input[name="equipment_id"]').forEach(cb => cb.checked = false);
     
     // เลือก radio button ตัวแรกเป็น default

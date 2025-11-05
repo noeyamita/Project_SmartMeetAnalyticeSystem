@@ -260,16 +260,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         data.forEach(booking => {
             const row = bookingTableBody.insertRow();
+            const statusId = booking.status_id || booking.booking_status_id || 1;
+            const statusName = booking.status_name || 'จองสำเร็จ';
+            
+            // อนุญาตให้ยกเลิกได้เฉพาะสถานะ "จองสำเร็จ" (status_id = 1)
+            const canCancel = statusId === 1;
+            
             row.innerHTML = `
                 <td data-label="Room">${booking.room} (${booking.floor})</td>
                 <td data-label="Date">${booking.date}</td>
                 <td data-label="Time">${booking.time}</td>
-                <td data-label="Status"><span class="status ${booking.status}">${getStatusText(booking.status)}</span></td>
+                <td data-label="Status"><span class="status status-${statusId}">${statusName}</span></td>
                 <td data-label="Actions" style="white-space: nowrap;">
                     <button class="view-details-btn" data-id="${booking.id}">รายละเอียด</button>
-                    ${booking.status === 'pending' || booking.status === 'confirmed' ?
-                    `<button class="btn secondary-btn cancel-booking-btn" data-id="${booking.id}">ยกเลิก</button>` : ''
-                }
+                    ${canCancel ? `<button class="btn secondary-btn cancel-booking-btn" data-id="${booking.id}">ยกเลิก</button>` : ''}
                 </td>
             `;
         });
@@ -311,7 +315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const bookingId = event.target.dataset.id;
         const booking = bookings.find(b => b.id == bookingId);
         if (booking) {
-            alert(`รายละเอียดการจอง:\n\nห้อง: ${booking.room}\nวันที่: ${booking.date}\nเวลา: ${booking.time}\nวัตถุประสงค์: ${booking.purpose}\nจำนวนคน: ${booking.attendees} คน`);
+            alert(`รายละเอียดการจอง:\n\nห้อง: ${booking.room}\nวันที่: ${booking.date}\nเวลา: ${booking.time}\nหัวข้อการประชุม: ${booking.purpose}\nจำนวนคน: ${booking.attendees} คน`);
         }
     }
 

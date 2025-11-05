@@ -48,6 +48,12 @@
                 if (result.success) {
                     messageEl.style.color = 'green';
                     messageEl.textContent = result.message;
+                    
+                    // ✅ เก็บข้อมูล role และ user ลง sessionStorage
+                    sessionStorage.setItem('userRole', result.role_name);
+                    sessionStorage.setItem('userName', result.user_name);
+                    sessionStorage.setItem('roleId', result.role_id);
+                    
                     setTimeout(() => {
                         window.location.href = '/BookingMeetingRoom.html';
                     }, 1000);
