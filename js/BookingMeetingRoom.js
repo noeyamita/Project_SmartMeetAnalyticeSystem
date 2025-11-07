@@ -116,6 +116,16 @@ async function searchRooms() {
         return;
     }
 
+      // ✅ ตรวจสอบว่าวันที่ไม่ย้อนหลัง
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(date + 'T00:00:00');
+    
+    if (selectedDate < today) {
+        showAlert('ไม่สามารถจองย้อนหลังได้ กรุณาเลือกวันที่ปัจจุบันหรืออนาคต');
+        return;
+    }
+
     // ✅ ตรวจสอบรูปแบบเวลา
     if (!isValidTime(startTime)) {
         showAlert('รูปแบบเวลาเริ่มต้นไม่ถูกต้อง (ต้องเป็น HH:MM เช่น 09:00)');
@@ -126,6 +136,7 @@ async function searchRooms() {
         showAlert('รูปแบบเวลาสิ้นสุดไม่ถูกต้อง (ต้องเป็น HH:MM เช่น 10:30)');
         return;
     }
+
 
     // ✅ ตรวจสอบว่าเวลาสิ้นสุดมากกว่าเวลาเริ่มต้น
     if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {

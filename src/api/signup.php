@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // 5. บันทึกลงฐานข้อมูล (ใช้ Prepared Statement)
         $stmt = $pdo->prepare("INSERT INTO users (email, user_password, fname, lname, phone, role_id, priority_level, is_banned, cancellation_count, cancellation_reset)
-                               VALUES (?, ?, ?, ?, ?, 3, 1, 60, 0, 0)");
+                               VALUES (?, ?, ?, ?, ?, 3, 60, 0, 0, 0)");
         
         $stmt->execute([$email, $hashedPassword, $fname, $lname, $phone]);
 

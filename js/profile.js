@@ -1,14 +1,16 @@
 const API_BASE = "src/api/";
 
 document.addEventListener('DOMContentLoaded', async () => {
-    let currentUser = null;
     let bookings = [];
     let isEditingProfile = false;
     let originalFname = '';
     let originalLname = '';
+    let originalPhone = '';
     const fullNameInput = document.getElementById('full-name');
     const userEmailInput = document.getElementById('user-email');
+    const userPhoneInput = document.getElementById('user-phone');
     const toggleEditInfoBtn = document.getElementById('toggle-edit-info');
+    let currentUser = null;
     const editProfileForm = document.getElementById('edit-profile-form');
     const formActionsDiv = editProfileForm.querySelector('.form-actions');
     const emailConfirmationFields = document.getElementById('email-confirmation-fields');
@@ -24,13 +26,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         fullNameInput.value = currentUser.fullName;
         userEmailInput.value = currentUser.email;
+        userPhoneInput.value = currentUser.phone; // **เพิ่มบรรทัดนี้**
         originalFname = currentUser.fname;
         originalLname = currentUser.lname;
+        originalPhone = currentUser.phone; // **เพิ่มบรรทัดนี้**
     }
 
     function revertToEditMode() {
         fullNameInput.disabled = true;
         userEmailInput.disabled = true;
+        userPhoneInput.disabled = true;
 
         toggleEditInfoBtn.textContent = 'Edit Profile';
         toggleEditInfoBtn.classList.add('primary-btn');
@@ -128,6 +133,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             fullNameInput.disabled = false;
             userEmailInput.disabled = true;
+            userPhoneInput.disabled = false;
 
             toggleEditInfoBtn.textContent = 'Save Changes';
             toggleEditInfoBtn.classList.add('save-btn');
@@ -148,6 +154,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             // บันทึกการเปลี่ยนแปลง
             const newFullName = fullNameInput.value.trim();
+            const newPhone = userPhoneInput.value.trim();
             const nameParts = newFullName.split(' ');
 
             if (nameParts.length < 2) {
@@ -158,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const newFname = nameParts[0];
             const newLname = nameParts.slice(1).join(' ');
 
-            if (newFname === originalFname && newLname === originalLname) {
+            if (newFname === originalFname && newLname === originalLname && newPhone === originalPhone) {
                 showNotification('ไม่มีการเปลี่ยนแปลงข้อมูล', 'warning');
                 revertToEditMode();
                 return;
@@ -171,7 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     body: JSON.stringify({
                         fname: newFname,
                         lname: newLname,
-                        phone: currentUser.phone
+                        phone: newPhone
                     })
                 });
 
@@ -181,6 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     currentUser.fname = newFname;
                     currentUser.lname = newLname;
                     currentUser.fullName = newFullName;
+                    currentUser.phone = newPhone;
                     showNotification('อัปเดตข้อมูลสำเร็จ!', 'success');
                     revertToEditMode();
                 } else {

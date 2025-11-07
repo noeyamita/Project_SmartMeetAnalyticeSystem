@@ -55,6 +55,16 @@ try {
     $equipments = isset($input['equipments']) ? $input['equipments'] : [];
     $user_id = $_SESSION['user_id'];
 
+    // ✅ ตรวจสอบว่าวันที่จองไม่ย้อนหลัง
+    $today = date('Y-m-d');
+    if ($booking_date < $today) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "ไม่สามารถจองย้อนหลังได้ กรุณาเลือกวันที่ปัจจุบันหรืออนาคต"
+        ]);
+        exit;
+    }
+
     // ✅ ตรวจสอบรูปแบบเวลา HH:MM
     if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $start_time)) {
         echo json_encode([

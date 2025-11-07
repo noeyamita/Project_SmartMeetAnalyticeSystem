@@ -5,16 +5,31 @@ $pdo = $database->getConnection();
 
 header('Content-Type: application/json');
 
+// ✅ ฟังก์ชันแปลงเวลา HH:MM -> Decimal (เหมือนใน createBooking.php)
+function timeToDecimal($time) {
+    if (empty($time)) return null;
+    
+    $parts = explode(':', $time);
+    $hours = intval($parts[0]);
+    $minutes = isset($parts[1]) ? intval($parts[1]) : 0;
+    
+    // แปลงเป็นทศนิยมแบบถูกต้อง: 14:40 = 14.40, 14:25 = 14.25
+    return floatval(sprintf("%.2f", $hours + ($minutes / 100)));
+}
+
 // ===== รับค่าจาก request =====
 $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
 $start_time = isset($_GET['start_time']) ? $_GET['start_time'] : null;
 $end_time = isset($_GET['end_time']) ? $_GET['end_time'] : null;
-$capacity = isset($_GET['capacity']) ? intval($_GET['capacity']) : 0; // ✅ เพิ่มการรับค่าจำนวนคน
+$capacity = isset($_GET['capacity']) ? intval($_GET['capacity']) : 0;
+
+// ✅ แปลงเวลาเป็น Decimal สำหรับเปรียบเทียบ
+$start_time_decimal = $start_time ? timeToDecimal($start_time) : null;
+$end_time_decimal = $end_time ? timeToDecimal($end_time) : null;
 
 // ✅ ดึงข้อมูลห้องที่จุคนได้ตามที่ต้องการ
 $sql = "SELECT * FROM Meeting_Rooms";
 
-// ✅ ถ้ามีการระบุจำนวนคน ให้กรองเฉพาะห้องที่จุได้มากกว่าหรือเท่ากับ
 if ($capacity > 0) {
     $sql .= " WHERE capacity >= :capacity";
 }
@@ -23,7 +38,6 @@ $sql .= " ORDER BY room_id ASC";
 
 $stmt = $pdo->prepare($sql);
 
-// ✅ Bind parameter ถ้ามีการกรอง capacity
 if ($capacity > 0) {
     $stmt->bindParam(':capacity', $capacity, PDO::PARAM_INT);
 }
@@ -51,21 +65,22 @@ foreach ($rooms as $room) {
         $availability_text = 'ปิดปรับปรุง';
     } else {
         // ตรวจสอบว่าห้องนี้ถูกจองในช่วงเวลาที่ผู้ใช้ระบุไหม
-        if ($date && $start_time && $end_time) {
+        if ($date && $start_time_decimal !== null && $end_time_decimal !== null) {
+            // ✅ ใช้ Decimal เปรียบเทียบกับ Decimal ในฐานข้อมูล
             $sqlCheck = "SELECT COUNT(*) 
                          FROM Bookings
                          WHERE room_id = :room_id
                          AND booking_date = :date
                          AND status IN (1, 'confirmed', 'อนุมัติ')
                          AND (
-                             (start_time < :end_time AND end_time > :start_time)
+                             start_time < :end_time AND end_time > :start_time
                          )";
             $stmtCheck = $pdo->prepare($sqlCheck);
             $stmtCheck->execute([
                 ':room_id' => $room['room_id'],
                 ':date' => $date,
-                ':start_time' => $start_time,
-                ':end_time' => $end_time
+                ':start_time' => $start_time_decimal,
+                ':end_time' => $end_time_decimal
             ]);
 
             $isBooked = $stmtCheck->fetchColumn() > 0;
