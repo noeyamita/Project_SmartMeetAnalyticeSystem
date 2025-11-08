@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/config.php';
 header("Content-Type: application/json");
 
-// ✅ ฟังก์ชันแปลงเวลา HH:MM -> Decimal (แบบถูกต้อง)
+//ฟังก์ชันแปลงเวลา HH:MM -> Decimal (แบบถูกต้อง)
 function timeToDecimal($time) {
     if (empty($time)) return null;
     
@@ -12,11 +12,11 @@ function timeToDecimal($time) {
     $hours = intval($parts[0]);
     $minutes = isset($parts[1]) ? intval($parts[1]) : 0;
     
-    // ✅ แปลงเป็นทศนิยมแบบถูกต้อง: 14:40 = 14.40, 14:25 = 14.25
+    //แปลงเป็นทศนิยมแบบถูกต้อง: 14:40 = 14.40, 14:25 = 14.25
     return floatval(sprintf("%.2f", $hours + ($minutes / 100)));
 }
 
-// ✅ ฟังก์ชันตรวจสอบเวลาทับซ้อน
+//ฟังก์ชันตรวจสอบเวลาทับซ้อน
 function isTimeOverlap($start1, $end1, $start2, $end2) {
     return ($start1 < $end2 && $end1 > $start2);
 }
@@ -55,7 +55,7 @@ try {
     $equipments = isset($input['equipments']) ? $input['equipments'] : [];
     $user_id = $_SESSION['user_id'];
 
-    // ✅ ตรวจสอบว่าวันที่จองไม่ย้อนหลัง
+    //ตรวจสอบว่าวันที่จองไม่ย้อนหลัง
     $today = date('Y-m-d');
     if ($booking_date < $today) {
         echo json_encode([
@@ -65,7 +65,7 @@ try {
         exit;
     }
 
-    // ✅ ตรวจสอบรูปแบบเวลา HH:MM
+    //ตรวจสอบรูปแบบเวลา HH:MM
     if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $start_time)) {
         echo json_encode([
             "status" => "error",
@@ -86,7 +86,7 @@ try {
     $start_time_decimal = timeToDecimal($start_time);
     $end_time_decimal = timeToDecimal($end_time);
 
-    // ✅ ตรวจสอบความถูกต้องของเวลา
+    //ตรวจสอบความถูกต้องของเวลา
     if ($start_time_decimal >= $end_time_decimal) {
         echo json_encode([
             "status" => "error",
@@ -95,7 +95,7 @@ try {
         exit;
     }
 
-// ✅ ตรวจสอบความถูกต้องของเวลา
+//ตรวจสอบความถูกต้องของเวลา
     if ($start_time_decimal >= $end_time_decimal) {
         echo json_encode([
             "status" => "error",
@@ -104,7 +104,7 @@ try {
         exit;
     }
 
-    // ✅ ตรวจสอบความจุของห้อง
+    //ตรวจสอบความจุของห้อง
     $checkCapacity = $pdo->prepare("
         SELECT room_name, capacity 
         FROM Meeting_Rooms 
@@ -130,7 +130,7 @@ try {
         exit;
     }
 
-    // ✅ ตรวจสอบความจุของห้องและเวลาเปิด-ปิด
+    //ตรวจสอบความจุของห้องและเวลาเปิด-ปิด
     $checkCapacity = $pdo->prepare("
         SELECT room_name, capacity, open_time, close_time 
         FROM Meeting_Rooms 
@@ -156,7 +156,7 @@ try {
         exit;
     }
 
-    // ✅ ตรวจสอบเวลาเปิด-ปิดของห้อง
+    //ตรวจสอบเวลาเปิด-ปิดของห้อง
     $room_open_time = timeToDecimal($room['open_time']);
     $room_close_time = timeToDecimal($room['close_time']);
     
@@ -168,7 +168,7 @@ try {
         exit;
     }
 
-    // ✅ ตรวจสอบว่าห้องว่างหรือไม่ (ใช้ logic ที่ถูกต้อง)
+    //ตรวจสอบว่าห้องว่างหรือไม่ (ใช้ logic ที่ถูกต้อง)
     $checkAvailability = $pdo->prepare("
         SELECT booking_id, start_time, end_time 
         FROM Bookings 
@@ -199,7 +199,7 @@ try {
     // เริ่ม Transaction
     $pdo->beginTransaction();
 
-    // ✅ บันทึกการจอง
+    //บันทึกการจอง
     $insertBooking = $pdo->prepare("
         INSERT INTO Bookings 
         (user_id, room_id, booking_date, start_time, end_time, purpose, attendees_count, table_layout, status, created_at, updated_at)
@@ -220,7 +220,7 @@ try {
 
     $booking_id = $pdo->lastInsertId();
 
-    // ✅ บันทึกอุปกรณ์
+    //บันทึกอุปกรณ์
     if (!empty($equipments) && is_array($equipments)) {
         $insertEquipment = $pdo->prepare("
             INSERT INTO Booking_Equipment (booking_id, equipment_id)

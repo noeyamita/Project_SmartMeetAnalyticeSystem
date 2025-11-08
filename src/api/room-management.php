@@ -131,8 +131,16 @@ if ($method === 'GET') {
 }
 // จัดการ POST Request
 elseif ($method === 'POST') {
-    // รับข้อมูลจาก FormData
-    $action = $_POST['action'] ?? '';
+    // ตรวจสอบว่าเป็นการส่งแบบ FormData หรือ JSON
+    if (isset($_POST['action'])) {
+        // กรณีส่งแบบ FormData (สำหรับ create/update ที่มี file upload)
+        $action = $_POST['action']; 
+    } elseif (isset($input['action'])) {
+        // กรณีส่งแบบ JSON (สำหรับ delete หรือ action อื่นๆ ที่ไม่มี file)
+        $action = $input['action'];
+    } else {
+        $action = '';
+    }
     
     switch ($action) {
         case 'create':
@@ -260,14 +268,14 @@ elseif ($method === 'POST') {
                 // รับข้อมูลจาก JSON สำหรับ delete
                 $deleteInput = json_decode(file_get_contents('php://input'), true);
                 
-                if (!isset($deleteInput['room_id'])) {
+                if (!isset($input['room_id'])) {
                     sendResponse(false, null, 'ไม่พบ room_id');
                     exit;
                 }
                 
                 // ดึงข้อมูลรูปภาพก่อนลบ
                 $imageStmt = $pdo->prepare("SELECT image_url FROM Meeting_Rooms WHERE room_id = :room_id");
-                $imageStmt->execute([':room_id' => $deleteInput['room_id']]);
+                $imageStmt->execute([':room_id' => $input['room_id']]);
                 $roomData = $imageStmt->fetch(PDO::FETCH_ASSOC);
                 
                 // ตรวจสอบว่ามีการจองห้องนี้อยู่หรือไม่
@@ -276,7 +284,7 @@ elseif ($method === 'POST') {
                     FROM Bookings 
                     WHERE room_id = :room_id AND status = 1
                 ");
-                $checkStmt->execute([':room_id' => $deleteInput['room_id']]);
+                $checkStmt->execute([':room_id' => $input['room_id']]);
                 $result = $checkStmt->fetch(PDO::FETCH_ASSOC);
                 
                 if ($result['count'] > 0) {
@@ -285,7 +293,7 @@ elseif ($method === 'POST') {
                 }
                 
                 $stmt = $pdo->prepare("DELETE FROM Meeting_Rooms WHERE room_id = :room_id");
-                $stmt->execute([':room_id' => $deleteInput['room_id']]);
+                $stmt->execute([':room_id' => $input['room_id']]);
                 
                 if ($stmt->rowCount() > 0) {
                     // ลบรูปภาพ

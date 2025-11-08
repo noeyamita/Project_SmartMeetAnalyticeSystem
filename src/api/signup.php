@@ -10,8 +10,7 @@ $pdo = $database->getConnection();
 
 // ตรวจสอบว่าเป็นวิธีการ POST เท่านั้น (มาจากฟอร์ม HTML)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // รับค่าและทำความสะอาดข้อมูลที่ส่งมาจากฟอร์ม HTML
-    // (ใช้ $_POST['name']??'' เพื่อป้องกัน Warning/Notice หากค่าไม่มีการส่งมา)
+    // รับค่าที่ส่งมาจากฟอร์ม HTML
     $email = trim($_POST['email'] ?? '');
     $password = trim($_POST['password'] ?? '');
     $confirmPassword = trim($_POST['confirmPassword'] ?? '');

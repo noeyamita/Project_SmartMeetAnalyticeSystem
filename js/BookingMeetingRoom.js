@@ -18,13 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchTableLayouts();
 });
 
-// ✅ ฟังก์ชันตรวจสอบรูปแบบเวลา HH:MM
+//ฟังก์ชันตรวจสอบรูปแบบเวลา HH:MM
 function isValidTime(timeString) {
     const regex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
     return regex.test(timeString);
 }
 
-// ✅ ฟังก์ชันแปลงเวลา HH:MM เป็นนาที (สำหรับเปรียบเทียบ)
+//ฟังก์ชันแปลงเวลา HH:MM เป็นนาที (สำหรับเปรียบเทียบ)
 function timeToMinutes(timeString) {
     const [hours, minutes] = timeString.split(':').map(Number);
     return hours * 60 + minutes;
@@ -40,7 +40,7 @@ function showAlert(message, type = 'error', duration = 3000) {
     }, duration);
 }
 
-// ✅ 1. fetchEquipments() - ดึงข้อมูลอุปกรณ์
+//1. fetchEquipments() - ดึงข้อมูลอุปกรณ์
 async function fetchEquipments() {
     try {
         const response = await fetch('../src/api/getEquipments.php'); 
@@ -72,7 +72,7 @@ async function fetchEquipments() {
     }
 }
 
-// ✅ 2. fetchTableLayouts() - ดึงข้อมูลรูปแบบโต๊ะ
+//2. fetchTableLayouts() - ดึงข้อมูลรูปแบบโต๊ะ
 async function fetchTableLayouts() {
     try {
         const response = await fetch('../src/api/getTableLayouts.php'); 
@@ -102,7 +102,7 @@ async function fetchTableLayouts() {
     }
 }
 
-// ✅ 3. searchRooms() - ค้นหาห้องประชุมที่ว่าง
+//3. searchRooms() - ค้นหาห้องประชุมที่ว่าง
 async function searchRooms() {
     const date = document.getElementById('date').value;
     const startTime = document.getElementById('start_time').value;
@@ -116,7 +116,7 @@ async function searchRooms() {
         return;
     }
 
-      // ✅ ตรวจสอบว่าวันที่ไม่ย้อนหลัง
+      //ตรวจสอบว่าวันที่ไม่ย้อนหลัง
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const selectedDate = new Date(date + 'T00:00:00');
@@ -126,7 +126,7 @@ async function searchRooms() {
         return;
     }
 
-    // ✅ ตรวจสอบรูปแบบเวลา
+    //ตรวจสอบรูปแบบเวลา
     if (!isValidTime(startTime)) {
         showAlert('รูปแบบเวลาเริ่มต้นไม่ถูกต้อง (ต้องเป็น HH:MM เช่น 09:00)');
         return;
@@ -138,13 +138,13 @@ async function searchRooms() {
     }
 
 
-    // ✅ ตรวจสอบว่าเวลาสิ้นสุดมากกว่าเวลาเริ่มต้น
+    //ตรวจสอบว่าเวลาสิ้นสุดมากกว่าเวลาเริ่มต้น
     if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
         showAlert('เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น');
         return;
     }
 
-    // ✅ ตรวจสอบจำนวนผู้เข้าร่วม
+    //ตรวจสอบจำนวนผู้เข้าร่วม
     const capacityNum = parseInt(capacity);
     if (capacityNum < 1 || capacityNum > 1000) {
         showAlert('จำนวนผู้เข้าร่วมต้องอยู่ระหว่าง 1-1000 คน');
@@ -155,13 +155,13 @@ async function searchRooms() {
     availableRooms = []; 
 
     try {
-        // ✅ ส่งข้อมูลวันที่และเวลาไปตรวจสอบด้วย
+        //ส่งข้อมูลวันที่และเวลาไปตรวจสอบด้วย
         const url = `../src/api/getRooms.php?capacity=${capacityNum}&date=${date}&start_time=${startTime}&end_time=${endTime}`; 
         const response = await fetch(url);
         const result = await response.json();
 
         if (result.status === 'success' && result.data.length > 0) {
-            // ✅ แยกห้องตามสถานะ
+            //แยกห้องตามสถานะ
             availableRooms = result.data;
             const trulyAvailable = availableRooms.filter(room => room.availability_status === 'available');
             
@@ -186,7 +186,7 @@ async function searchRooms() {
     }
 }
 
-// ✅ 4. confirmBooking() - ยืนยันการจอง
+//4. confirmBooking() - ยืนยันการจอง
 async function confirmBooking() {
     if (!selectedRoom) {
         showAlert('กรุณาเลือกห้องประชุมก่อน');
@@ -221,7 +221,7 @@ async function confirmBooking() {
         return;
     }
 
-    // ✅ ตรวจสอบเวลาอีกครั้งก่อนส่ง
+    //ตรวจสอบเวลาอีกครั้งก่อนส่ง
     if (!isValidTime(startTime) || !isValidTime(endTime)) {
         showAlert('รูปแบบเวลาไม่ถูกต้อง');
         return;
@@ -286,7 +286,7 @@ async function confirmBooking() {
 }
 
 
-// ✅ renderRooms() - แสดงรายการห้องประชุม (รูปขึ้นแน่นอน)
+//renderRooms() - แสดงรายการห้องประชุม (รูปขึ้นแน่นอน)
 function renderRooms(rooms) {
     const roomsGrid = document.getElementById('roomsGrid');
     roomsGrid.innerHTML = '';
@@ -299,11 +299,11 @@ function renderRooms(rooms) {
     rooms.forEach(room => {
         const card = document.createElement('div');
 
-        // ✅ ใช้ข้อมูลสถานะจาก API
+        //ใช้ข้อมูลสถานะจาก API
         const status = room.availability_status || 'unknown';
         const statusText = room.availability_text || 'ไม่ทราบสถานะ';
 
-        // ✅ สีสถานะ
+        //สีสถานะ
         let chipClass = '';
         let statusClass = '';
         if (status === 'available') {
@@ -320,13 +320,13 @@ function renderRooms(rooms) {
             statusClass = 'unavailable';
         }
 
-        // ✅ ห้องว่างเท่านั้นที่กดเลือกได้
+        //ห้องว่างเท่านั้นที่กดเลือกได้
         const isAvailable = status === 'available';
 
         card.className = `room-card ${statusClass}`;
         card.setAttribute('data-room-id', room.room_id);
 
-        // ✅ ตรวจสอบ path รูป (ไม่เติม ../html/)
+        //ตรวจสอบ path รูป (ไม่เติม ../html/)
         const imageUrl = room.image_url && room.image_url.trim() !== ''
             ? room.image_url
             : 'uploads/rooms/default_room.jpg';
@@ -334,7 +334,7 @@ function renderRooms(rooms) {
         const operatingHours = `${room.open_time || '00:00'} - ${room.close_time || '23:59'}`;
         const roomLocation = `${room.floor_number || '-'} | ขนาด ${room.room_size || 'N/A'}`;
 
-        // ✅ สร้าง HTML การ์ด
+        //สร้าง HTML การ์ด
         card.innerHTML = `
             <div class="room-image" style="background-image: url('${imageUrl}');"></div>
             <div class="room-details">
@@ -358,7 +358,7 @@ function renderRooms(rooms) {
 
 
 
-// ✅ 6. openBookingModal() - เปิด Modal สำหรับจอง
+// 6. openBookingModal() - เปิด Modal สำหรับจอง
 function openBookingModal(roomId) {
     selectedRoom = availableRooms.find(room => room.room_id == roomId);
 
@@ -373,7 +373,7 @@ function openBookingModal(roomId) {
     const date = document.getElementById('date').value;
     const capacity = document.getElementById('capacity').value;
 
-    // ✅ ตรวจสอบจำนวนคนไม่เกินความจุของห้อง
+    //ตรวจสอบจำนวนคนไม่เกินความจุของห้อง
     if (capacity > selectedRoom.capacity) {
         showAlert(`จำนวนผู้เข้าร่วม (${capacity} คน) เกินความจุของห้อง ${selectedRoom.room_name} (รองรับได้ ${selectedRoom.capacity} คน)`, 'error', 5000);
         return;
@@ -397,7 +397,7 @@ function openBookingModal(roomId) {
     document.getElementById('bookingModal').classList.add('active');
 }
 
-// ✅ 7. closeModal() - ปิด Modal
+//7. closeModal() - ปิด Modal
 function closeModal() {
     document.getElementById('bookingModal').classList.remove('active');
     selectedRoom = null;
@@ -409,7 +409,7 @@ function closeModal() {
     if (firstLayout) firstLayout.checked = true;
 }
 
-// ✅ 8. resetSearch() - ล้างค่าการค้นหา
+//8. resetSearch() - ล้างค่าการค้นหา
 function resetSearch() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('date').value = today;

@@ -2,7 +2,7 @@
 const API_URL = '../src/api/room-management.php';
 
 // เก็บข้อมูลห้องทั้งหมด
-let rooms = [];
+let Meeting_Rooms = [];
 let statuses = [];
 let isEditing = false;
 
@@ -124,8 +124,8 @@ async function loadRooms() {
         const data = await response.json();
         
         if (data.success) {
-            rooms = data.data;
-            displayRooms(rooms);
+            Meeting_Rooms = data.data;
+            displayRooms(Meeting_Rooms);
         } else {
             showToast(data.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
         }
@@ -210,7 +210,7 @@ function decimalToTime(decimal) {
 // ค้นหาห้อง
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase();
-    const filteredRooms = rooms.filter(room => 
+    const filteredRooms = Meeting_Rooms.filter(room => 
         room.room_name.toLowerCase().includes(searchTerm) ||
         room.floor_number.toLowerCase().includes(searchTerm) ||
         room.capacity.toString().includes(searchTerm)
@@ -301,7 +301,7 @@ async function updateRoom(formData) {
 
 // ตั้งค่าฟอร์มสำหรับแก้ไข
 function editRoom(roomId) {
-    const room = rooms.find(r => r.room_id === roomId);
+    const room = Meeting_Rooms.find(r => r.room_id === roomId);
     if (!room) return;
 
     isEditing = true;

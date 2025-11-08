@@ -5,7 +5,7 @@ $pdo = $database->getConnection();
 
 header('Content-Type: application/json');
 
-// ✅ ฟังก์ชันแปลงเวลา HH:MM -> Decimal (เหมือนใน createBooking.php)
+//ฟังก์ชันแปลงเวลา HH:MM -> Decimal (เหมือนใน createBooking.php)
 function timeToDecimal($time) {
     if (empty($time)) return null;
     
@@ -23,11 +23,11 @@ $start_time = isset($_GET['start_time']) ? $_GET['start_time'] : null;
 $end_time = isset($_GET['end_time']) ? $_GET['end_time'] : null;
 $capacity = isset($_GET['capacity']) ? intval($_GET['capacity']) : 0;
 
-// ✅ แปลงเวลาเป็น Decimal สำหรับเปรียบเทียบ
+//แปลงเวลาเป็น Decimal สำหรับเปรียบเทียบ
 $start_time_decimal = $start_time ? timeToDecimal($start_time) : null;
 $end_time_decimal = $end_time ? timeToDecimal($end_time) : null;
 
-// ✅ ดึงข้อมูลห้องที่จุคนได้ตามที่ต้องการ
+//ดึงข้อมูลห้องที่จุคนได้ตามที่ต้องการ
 $sql = "SELECT * FROM Meeting_Rooms";
 
 if ($capacity > 0) {
@@ -66,7 +66,7 @@ foreach ($rooms as $room) {
     } else {
         // ตรวจสอบว่าห้องนี้ถูกจองในช่วงเวลาที่ผู้ใช้ระบุไหม
         if ($date && $start_time_decimal !== null && $end_time_decimal !== null) {
-            // ✅ ใช้ Decimal เปรียบเทียบกับ Decimal ในฐานข้อมูล
+            //ใช้ Decimal เปรียบเทียบกับ Decimal ในฐานข้อมูล
             $sqlCheck = "SELECT COUNT(*) 
                          FROM Bookings
                          WHERE room_id = :room_id
