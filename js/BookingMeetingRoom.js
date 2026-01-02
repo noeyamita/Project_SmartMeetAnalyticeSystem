@@ -1,19 +1,19 @@
 const API_BASE = "src/api/";
 let searchCriteria = null;
-let availableRooms = []; 
-let selectedRoom = null; 
+let availableRooms = [];
+let selectedRoom = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Page loaded, initializing...');
-    
+
     // กำหนดวันที่ปัจจุบันเป็นค่าเริ่มต้น
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('date').value = today;
 
     // เรียกใช้ฟังก์ชันดึงข้อมูลเมื่อโหลดหน้าจอ 
     console.log('📞 Calling fetchEquipments()...');
-    fetchEquipments(); 
-    
+    fetchEquipments();
+
     console.log('📞 Calling fetchTableLayouts()...');
     fetchTableLayouts();
 });
@@ -30,6 +30,28 @@ function timeToMinutes(timeString) {
     return hours * 60 + minutes;
 }
 
+// ✅ ฟังก์ชันใหม่: ตรวจสอบว่าต้องจองล่วงหน้าอย่างน้อย 3 ชั่วโมง
+function isBookingAtLeast3HoursInAdvance(bookingDate, bookingTime) {
+    const now = new Date();
+    const bookingDateTime = new Date(bookingDate + 'T' + bookingTime + ':00');
+
+    // คำนวณความแตกต่างเป็นมิลลิวินาที
+    const diffMs = bookingDateTime - now;
+
+    // แปลงเป็นชั่วโมง
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    return diffHours >= 3;
+}
+
+// ✅ ฟังก์ชันใหม่: ตรวจสอบว่าเวลาที่จองไม่ใช่อดีต
+function isNotPastTime(bookingDate, bookingTime) {
+    const now = new Date();
+    const bookingDateTime = new Date(bookingDate + 'T' + bookingTime + ':00');
+
+    return bookingDateTime > now;
+}
+
 // ฟังก์ชันสำหรับแสดง/ซ่อน Alert
 function showAlert(message, type = 'error', duration = 3000) {
     const alertBox = document.getElementById('alertBox');
@@ -43,13 +65,13 @@ function showAlert(message, type = 'error', duration = 3000) {
 //1. fetchEquipments() - ดึงข้อมูลอุปกรณ์
 async function fetchEquipments() {
     try {
-        const response = await fetch('../src/api/getEquipments.php'); 
+        const response = await fetch('../src/api/getEquipments.php');
         const result = await response.json();
         const equipmentOptions = document.getElementById('equipmentOptions');
         equipmentOptions.innerHTML = '';
 
         if (result.status === 'success' && result.data.length > 0) {
-            equipmentOptions.className = 'equipment-list'; 
+            equipmentOptions.className = 'equipment-list';
             result.data.forEach(equipment => {
                 const item = document.createElement('div');
                 item.className = 'equipment-item';
@@ -75,7 +97,7 @@ async function fetchEquipments() {
 //2. fetchTableLayouts() - ดึงข้อมูลรูปแบบโต๊ะ
 async function fetchTableLayouts() {
     try {
-        const response = await fetch('../src/api/getTableLayouts.php'); 
+        const response = await fetch('../src/api/getTableLayouts.php');
         const result = await response.json();
         const layoutOptions = document.getElementById('tableLayoutOptions');
         layoutOptions.innerHTML = '';
@@ -116,11 +138,11 @@ async function searchRooms() {
         return;
     }
 
-      //ตรวจสอบว่าวันที่ไม่ย้อนหลัง
+    //ตรวจสอบว่าวันที่ไม่ย้อนหลัง
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const selectedDate = new Date(date + 'T00:00:00');
-    
+
     if (selectedDate < today) {
         showAlert('ไม่สามารถจองย้อนหลังได้ กรุณาเลือกวันที่ปัจจุบันหรืออนาคต');
         return;
@@ -137,10 +159,21 @@ async function searchRooms() {
         return;
     }
 
-
     //ตรวจสอบว่าเวลาสิ้นสุดมากกว่าเวลาเริ่มต้น
     if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
         showAlert('เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น');
+        return;
+    }
+
+    // ✅ ตรวจสอบว่าเวลาเริ่มต้นไม่ใช่อดีต
+    if (!isNotPastTime(date, startTime)) {
+        showAlert('⚠️ ไม่สามารถจองเวลาที่ผ่านมาแล้วได้ กรุณาเลือกเวลาในอนาคต');
+        return;
+    }
+
+    // ✅ ตรวจสอบว่าจองล่วงหน้าอย่างน้อย 3 ชั่วโมง
+    if (!isBookingAtLeast3HoursInAdvance(date, startTime)) {
+        showAlert('⚠️ กรุณาจองล่วงหน้าอย่างน้อย 3 ชั่วโมง', 'warning', 5000);
         return;
     }
 
@@ -152,11 +185,11 @@ async function searchRooms() {
     }
 
     roomsGrid.innerHTML = '<div class="loading">กำลังค้นหาห้องประชุม...</div>';
-    availableRooms = []; 
+    availableRooms = [];
 
     try {
         //ส่งข้อมูลวันที่และเวลาไปตรวจสอบด้วย
-        const url = `../src/api/getRooms.php?capacity=${capacityNum}&date=${date}&start_time=${startTime}&end_time=${endTime}`; 
+        const url = `../src/api/getRooms.php?capacity=${capacityNum}&date=${date}&start_time=${startTime}&end_time=${endTime}`;
         const response = await fetch(url);
         const result = await response.json();
 
@@ -164,7 +197,7 @@ async function searchRooms() {
             //แยกห้องตามสถานะ
             availableRooms = result.data;
             const trulyAvailable = availableRooms.filter(room => room.availability_status === 'available');
-            
+
             if (availableRooms.length > 0) {
                 renderRooms(availableRooms);
                 showAlert(`พบห้องทั้งหมด ${availableRooms.length} ห้อง (ว่าง ${trulyAvailable.length} ห้อง)`, 'success');
@@ -198,12 +231,12 @@ async function confirmBooking() {
     const startTime = document.getElementById('start_time').value;
     const endTime = document.getElementById('end_time').value;
     const capacity = document.getElementById('capacity').value;
-    
+
     const selectedLayout = document.querySelector('input[name="table_layout_id"]:checked');
     const tableLayoutId = selectedLayout ? selectedLayout.value : null;
 
     const selectedEquipments = Array.from(document.querySelectorAll('input[name="equipment_id"]:checked'))
-                                     .map(cb => cb.value);
+        .map(cb => cb.value);
 
     // ตรวจสอบข้อมูล
     if (!meetingTitle) {
@@ -215,7 +248,7 @@ async function confirmBooking() {
         showAlert('หัวข้อการประชุมยาวเกินไป (สูงสุด 200 ตัวอักษร)');
         return;
     }
-    
+
     if (!tableLayoutId) {
         showAlert('กรุณาเลือกรูปแบบการจัดโต๊ะ');
         return;
@@ -232,6 +265,17 @@ async function confirmBooking() {
         return;
     }
 
+    // ✅ ตรวจสอบอีกครั้งก่อนยืนยันการจอง
+    if (!isNotPastTime(date, startTime)) {
+        showAlert('⚠️ ไม่สามารถจองเวลาที่ผ่านมาแล้วได้', 'error', 5000);
+        return;
+    }
+
+    if (!isBookingAtLeast3HoursInAdvance(date, startTime)) {
+        showAlert('⚠️ กรุณาจองล่วงหน้าอย่างน้อย 3 ชั่วโมง', 'warning', 5000);
+        return;
+    }
+
     const bookingData = {
         room_id: selectedRoom.room_id,
         booking_date: date,
@@ -244,12 +288,12 @@ async function confirmBooking() {
     };
 
     console.log('📤 Sending booking data:', bookingData);
-    
+
     // ✅ เก็บชื่อห้องไว้ก่อนที่จะปิด Modal
     const roomName = selectedRoom.room_name;
-    
+
     try {
-        const response = await fetch('../src/api/createBooking.php', { 
+        const response = await fetch('../src/api/createBooking.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(bookingData)
@@ -257,7 +301,7 @@ async function confirmBooking() {
 
         const text = await response.text();
         console.log('📥 Response text:', text);
-        
+
         let result;
         try {
             result = JSON.parse(text);
@@ -270,12 +314,12 @@ async function confirmBooking() {
         if (result.status === 'success') {
             closeModal();
             showAlert(`✅ จองห้อง ${roomName} สำเร็จ! (${result.booking_time || ''})`, 'success', 20000);
-            
+
             // รีเฟรชรายการห้อง
             setTimeout(() => {
                 searchRooms();
             }, 20000);
-            
+
         } else {
             showAlert(`❌ จองไม่สำเร็จ: ${result.message}`, 'error', 8000);
         }
@@ -381,10 +425,10 @@ function openBookingModal(roomId) {
 
     // แปลงวันที่เป็นรูปแบบไทย
     const dateObj = new Date(date + 'T00:00:00');
-    const thaiDate = dateObj.toLocaleDateString('th-TH', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+    const thaiDate = dateObj.toLocaleDateString('th-TH', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
     });
 
     modalRoomInfo.innerHTML = `
@@ -403,7 +447,7 @@ function closeModal() {
     selectedRoom = null;
     document.getElementById('meeting_title').value = '';
     document.querySelectorAll('input[name="equipment_id"]').forEach(cb => cb.checked = false);
-    
+
     // เลือก radio button ตัวแรกเป็น default
     const firstLayout = document.querySelector('input[name="table_layout_id"]');
     if (firstLayout) firstLayout.checked = true;
@@ -423,10 +467,10 @@ function resetSearch() {
             <p>กรุณาเลือกวันที่และเวลาเพื่อค้นหาห้องว่าง</p>
         </div>
     `;
-    
+
     availableRooms = [];
     selectedRoom = null;
     document.getElementById('alertBox').className = 'alert';
-    
+
     showAlert('ล้างข้อมูลการค้นหาเรียบร้อย', 'success', 2000);
 }

@@ -206,7 +206,7 @@ select:focus {
     left: 0;
     right: 0;
     height: 60px;
-    background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent);
     pointer-events: none;
 }
 
@@ -301,9 +301,12 @@ select:focus {
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.6;
     }
@@ -396,6 +399,7 @@ select:focus {
         opacity: 0;
         transform: translateY(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -469,6 +473,7 @@ textarea:focus {
         opacity: 0;
         transform: translateY(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -509,25 +514,25 @@ textarea:focus {
         width: 0;
         display: none;
     }
-    
+
     .main-content {
         margin-left: 0;
         width: 100%;
         padding: 20px;
     }
-    
+
     .rooms-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .row {
         grid-template-columns: 1fr;
     }
-    
+
     .room-image {
         height: 160px;
     }
-    
+
     .modal-content {
         padding: 20px;
         width: 95%;
@@ -550,8 +555,13 @@ textarea:focus {
 }
 
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Checkbox & Radio */
@@ -618,7 +628,8 @@ input[type="radio"] {
 
 /* 1. ห้องว่าง (Available) */
 .chip.available {
-    background-color: #10b981; /* เขียว */
+    background-color: #10b981;
+    /* เขียว */
     width: 12px;
     height: 12px;
     border-radius: 50%;
@@ -639,7 +650,8 @@ input[type="radio"] {
 
 /* 2. ห้องถูกจอง (Booked) */
 .chip.booked {
-    background-color: #ef4444; /* แดง */
+    background-color: #ef4444;
+    /* แดง */
     width: 12px;
     height: 12px;
     border-radius: 50%;
@@ -667,7 +679,8 @@ input[type="radio"] {
 
 /* 3. ห้องปิดปรับปรุง (Closed) */
 .chip.closed {
-    background-color: #f59e0b; /* ส้ม */
+    background-color: #f59e0b;
+    /* ส้ม */
     width: 12px;
     height: 12px;
     border-radius: 50%;
@@ -712,9 +725,12 @@ input[type="radio"] {
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.5;
     }

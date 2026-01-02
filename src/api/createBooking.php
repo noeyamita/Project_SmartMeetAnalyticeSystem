@@ -21,6 +21,25 @@ function isTimeOverlap($start1, $end1, $start2, $end2) {
     return ($start1 < $end2 && $end1 > $start2);
 }
 
+// ✅ ฟังก์ชันตรวจสอบว่าเวลาที่จองไม่ใช่อดีต
+function isNotPastTime($booking_date, $booking_time) {
+    $now = new DateTime();
+    $bookingDateTime = new DateTime($booking_date . ' ' . $booking_time);
+    
+    return $bookingDateTime > $now;
+}
+
+// ✅ ฟังก์ชันตรวจสอบว่าจองล่วงหน้าอย่างน้อย 3 ชั่วโมง
+function isBookingAtLeast3HoursInAdvance($booking_date, $booking_time) {
+    $now = new DateTime();
+    $bookingDateTime = new DateTime($booking_date . ' ' . $booking_time);
+    
+    $interval = $now->diff($bookingDateTime);
+    $hoursDiff = ($interval->days * 24) + $interval->h + ($interval->i / 60);
+    
+    return $hoursDiff >= 3;
+}
+
 // ตรวจสอบการล็อกอิน
 if (!isset($_SESSION['user_id'])) {
     echo json_encode([
@@ -82,6 +101,24 @@ try {
         exit;
     }
 
+    // ✅ ตรวจสอบว่าเวลาที่จองไม่ใช่อดีต
+    if (!isNotPastTime($booking_date, $start_time)) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "⚠️ ไม่สามารถจองเวลาที่ผ่านมาแล้วได้ กรุณาเลือกเวลาในอนาคต"
+        ]);
+        exit;
+    }
+
+    // ✅ ตรวจสอบว่าจองล่วงหน้าอย่างน้อย 3 ชั่วโมง
+    if (!isBookingAtLeast3HoursInAdvance($booking_date, $start_time)) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "⚠️ กรุณาจองล่วงหน้าอย่างน้อย 3 ชั่วโมง"
+        ]);
+        exit;
+    }
+
     // แปลงเวลาเป็น Decimal
     $start_time_decimal = timeToDecimal($start_time);
     $end_time_decimal = timeToDecimal($end_time);
@@ -91,41 +128,6 @@ try {
         echo json_encode([
             "status" => "error",
             "message" => "เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น"
-        ]);
-        exit;
-    }
-
-//ตรวจสอบความถูกต้องของเวลา
-    if ($start_time_decimal >= $end_time_decimal) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น"
-        ]);
-        exit;
-    }
-
-    //ตรวจสอบความจุของห้อง
-    $checkCapacity = $pdo->prepare("
-        SELECT room_name, capacity 
-        FROM Meeting_Rooms 
-        WHERE room_id = :room_id
-    ");
-    
-    $checkCapacity->execute(['room_id' => $room_id]);
-    $room = $checkCapacity->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$room) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "ไม่พบข้อมูลห้องประชุม"
-        ]);
-        exit;
-    }
-    
-    if ($capacity > $room['capacity']) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "จำนวนผู้เข้าร่วม ({$capacity} คน) เกินความจุของห้อง {$room['room_name']} (รองรับได้ {$room['capacity']} คน)"
         ]);
         exit;
     }
