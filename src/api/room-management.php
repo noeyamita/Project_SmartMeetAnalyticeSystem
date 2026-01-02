@@ -116,20 +116,13 @@ if ($method === 'GET') {
             
         case 'getStatus':
             try {
-                $stmt = $pdo->query("
-                    SELECT 
-                        roomstatus_id, 
-                        roomstatus_name 
-                    FROM room_status 
-                    ORDER BY roomstatus_id ASC
-                ");
+                $stmt = $pdo->query("SELECT * FROM status ORDER BY status_id ASC");
                 $statuses = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                sendResponse(true, $statuses, 'ดึงข้อมูลสถานะห้องสำเร็จ');
+                sendResponse(true, $statuses, 'ดึงข้อมูลสถานะสำเร็จ');
             } catch (PDOException $e) {
                 sendResponse(false, null, 'เกิดข้อผิดพลาด: ' . $e->getMessage());
             }
             break;
-
             
         default:
             sendResponse(false, null, 'Invalid action for GET request');
