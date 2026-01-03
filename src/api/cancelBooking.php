@@ -3,8 +3,19 @@ session_start();
 header("Content-Type: application/json");
 require_once __DIR__ . '/../config/config.php';
 
+// กำหนด status constants ตามตาราง status
+define('STATUS_SUCCESS', 1);      // จองสำเร็จ
+define('STATUS_CANCELLED', 2);    // ยกเลิกการจอง
+define('STATUS_PENDING', 3);      // รออนุมัติการย้ายห้อง
+
+// ฟังก์ชันแปลง Decimal -> HH:MM (ตรงข้ามกับ timeToDecimal)
+function decimalToTime($decimal) {
+    $hours = floor($decimal);
+    $minutes = round(($decimal - $hours) * 100); // แปลง .40 เป็น 40 นาที
+    return sprintf("%02d:%02d", $hours, $minutes);
+}
+
 try {
-    // ตรวจสอบว่ามีการ login หรือไม่
     if (!isset($_SESSION['user_id'])) {
         echo json_encode([
             "status" => "error",
@@ -25,9 +36,9 @@ try {
         exit;
     }
 
-    // ตรวจสอบว่าการจองนี้เป็นของผู้ใช้คนนี้หรือไม่
+    // ดึงข้อมูลการจองพร้อมวันที่และเวลา
     $stmt = $pdo->prepare("
-        SELECT booking_id, status, user_id 
+        SELECT booking_id, status, user_id, booking_date, start_time 
         FROM Bookings 
         WHERE booking_id = :booking_id
     ");
@@ -50,30 +61,52 @@ try {
         exit;
     }
 
-    if ($booking['status'] === 'cancelled') {
+    if ($booking['status'] == STATUS_CANCELLED) {
         echo json_encode([
             "status" => "error",
-            "message" => "This booking is already cancelled"
+            "message" => "การจองนี้ถูกยกเลิกไปแล้ว"
         ]);
         exit;
     }
 
-    if ($booking['status'] === 'completed') {
+    // แปลง start_time จาก decimal เป็น HH:MM
+    $startTimeFormatted = decimalToTime($booking['start_time']);
+    
+    // สร้าง DateTime สำหรับเปรียบเทียบ
+    $bookingDateTime = $booking['booking_date'] . ' ' . $startTimeFormatted . ':00';
+    $bookingTimestamp = strtotime($bookingDateTime);
+    $currentTimestamp = time();
+
+    // Debug log
+    error_log("=== Cancel Booking Debug ===");
+    error_log("Booking Date: " . $booking['booking_date']);
+    error_log("Start Time (decimal): " . $booking['start_time']);
+    error_log("Start Time (formatted): " . $startTimeFormatted);
+    error_log("Booking DateTime: " . $bookingDateTime);
+    error_log("Booking Timestamp: " . date('Y-m-d H:i:s', $bookingTimestamp));
+    error_log("Current Timestamp: " . date('Y-m-d H:i:s', $currentTimestamp));
+    error_log("Can Cancel: " . ($currentTimestamp < $bookingTimestamp ? 'YES' : 'NO'));
+
+    // ตรวจสอบว่าเวลาผ่านมาแล้วหรือยัง
+    if ($currentTimestamp >= $bookingTimestamp) {
         echo json_encode([
             "status" => "error",
-            "message" => "Cannot cancel completed booking"
+            "message" => "ไม่สามารถยกเลิกได้ เนื่องจากเวลาการจองได้ผ่านไปแล้ว"
         ]);
         exit;
     }
 
-    // อัปเดตสถานะเป็น cancelled
+    // อัปเดตสถานะเป็น 2 (ยกเลิกการจอง)
     $stmt = $pdo->prepare("
         UPDATE Bookings 
-        SET status = 'cancelled' 
+        SET status = :status 
         WHERE booking_id = :booking_id
     ");
     
-    $result = $stmt->execute(['booking_id' => $bookingId]);
+    $result = $stmt->execute([
+        'status' => STATUS_CANCELLED,
+        'booking_id' => $bookingId
+    ]);
 
     if ($result) {
         // อัปเดตจำนวนการยกเลิกของผู้ใช้
@@ -86,12 +119,12 @@ try {
 
         echo json_encode([
             "status" => "success",
-            "message" => "Booking cancelled successfully"
+            "message" => "ยกเลิกการจองสำเร็จ"
         ]);
     } else {
         echo json_encode([
             "status" => "error",
-            "message" => "Failed to cancel booking"
+            "message" => "ไม่สามารถยกเลิกการจองได้"
         ]);
     }
 

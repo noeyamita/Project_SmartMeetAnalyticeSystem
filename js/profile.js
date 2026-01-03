@@ -26,10 +26,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         fullNameInput.value = currentUser.fullName;
         userEmailInput.value = currentUser.email;
-        userPhoneInput.value = currentUser.phone; // **เพิ่มบรรทัดนี้**
+        userPhoneInput.value = currentUser.phone;
         originalFname = currentUser.fname;
         originalLname = currentUser.lname;
-        originalPhone = currentUser.phone; // **เพิ่มบรรทัดนี้**
+        originalPhone = currentUser.phone;
     }
 
     function revertToEditMode() {
@@ -259,7 +259,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // เพิ่ม console.log เพื่อดูข้อมูลที่ได้รับ
     function renderBookings(data) {
+        console.log('Booking data:', data); // ดูข้อมูลที่ได้รับ
+
         bookingTableBody.innerHTML = '';
         if (data.length === 0) {
             bookingTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">ไม่มีประวัติการจอง</td></tr>';
@@ -267,23 +270,72 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         data.forEach(booking => {
+            console.log('Booking item:', booking); // ดูแต่ละรายการ
+
             const row = bookingTableBody.insertRow();
-            const statusId = booking.status_id || booking.booking_status_id || 1;
-            const statusName = booking.status_name || 'จองสำเร็จ';
-            
-            // อนุญาตให้ยกเลิกได้เฉพาะสถานะ "จองสำเร็จ" (status_id = 1)
-            const canCancel = statusId === 1;
-            
+
+            // ลองหาชื่อ field ที่ถูกต้อง
+            const statusId = parseInt(
+                booking.status_id ||
+                booking.booking_status_id ||
+                booking.status ||
+                1
+            );
+
+            console.log('Status ID:', statusId); // ดูว่า statusId เป็นเท่าไหร่
+
+            // แปลง status_id เป็นชื่อสถานะ
+            let statusName = 'จองสำเร็จ';
+            let statusClass = 'success';
+
+            switch (statusId) {
+                case 1:
+                    statusName = 'จองสำเร็จ';
+                    statusClass = 'success';
+                    break;
+                case 2:
+                    statusName = 'ยกเลิกแล้ว';
+                    statusClass = 'cancelled';
+                    break;
+                case 3:
+                    statusName = 'รอยืนยันการชำระเงิน';
+                    statusClass = 'pending';
+                    break;
+                default:
+                    statusName = booking.status_name || 'ไม่ทราบสถานะ';
+                    statusClass = 'default';
+            }
+
+            // ตรวจสอบว่าเวลาผ่านไปแล้วหรือยัง
+            const [startTime] = booking.time.split(' - '); // ดึงเวลาเริ่มต้น เช่น "10:00"
+
+            // แปลงวันที่และเวลาเป็น timestamp เพื่อเปรียบเทียบ
+            // รูปแบบ: "03/01/2026" + " " + "10:00"
+            const [day, month, year] = booking.date.split('/');
+            const bookingDateTimeStr = `${year}-${month}-${day} ${startTime}:00`;
+            const bookingDateTime = new Date(bookingDateTimeStr);
+            const now = new Date();
+
+            console.log('Booking DateTime String:', bookingDateTimeStr);
+            console.log('Booking DateTime:', bookingDateTime);
+            console.log('Current DateTime:', now);
+            console.log('Is Future:', bookingDateTime > now);
+
+            // อนุญาตให้ยกเลิกได้เฉพาะ: สถานะ = จองสำเร็จ (1) และเวลายังไม่ผ่าน
+            const canCancel = statusId === 1 && bookingDateTime > now;
+
+            console.log('Booking:', booking.date, booking.time, 'Status:', statusId, 'Can cancel:', canCancel);
+
             row.innerHTML = `
-                <td data-label="Room">${booking.room} (${booking.floor})</td>
-                <td data-label="Date">${booking.date}</td>
-                <td data-label="Time">${booking.time}</td>
-                <td data-label="Status"><span class="status status-${statusId}">${statusName}</span></td>
-                <td data-label="Actions" style="white-space: nowrap;">
-                    <button class="view-details-btn" data-id="${booking.id}">รายละเอียด</button>
-                    ${canCancel ? `<button class="btn secondary-btn cancel-booking-btn" data-id="${booking.id}">ยกเลิก</button>` : ''}
-                </td>
-            `;
+            <td data-label="ห้อง">${booking.room}</td>
+            <td data-label="วันที่">${booking.date}</td>
+            <td data-label="เวลา">${booking.time}</td>
+            <td data-label="สถานะ"><span class="status status-${statusClass}">${statusName}</span></td>
+            <td data-label="ดูรายละเอียด/ยกเลิก" style="white-space: nowrap;">
+                <button class="view-details-btn" data-id="${booking.id}">รายละเอียด</button>
+                ${canCancel ? `<button class="btn secondary-btn cancel-booking-btn" data-id="${booking.id}">ยกเลิก</button>` : ''}
+            </td>
+        `;
         });
 
         document.querySelectorAll('.view-details-btn').forEach(btn => {

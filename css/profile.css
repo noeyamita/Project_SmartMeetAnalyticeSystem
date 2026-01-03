@@ -38,6 +38,7 @@ body {
     max-width: 1400px;
     margin: 0 auto;
 }
+
 .page-title {
     color: var(--text-color);
     font-size: 2.5em;
@@ -260,6 +261,34 @@ input[disabled] {
     background-color: #fff3cd;
     color: #856404;
 }
+
+.status {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.status-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-default {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
 
 /* Legacy status classes (สำหรับ backward compatibility) */
 .completed {
