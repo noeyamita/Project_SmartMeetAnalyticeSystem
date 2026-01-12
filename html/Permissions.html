@@ -17,30 +17,11 @@
             <!-- Left Panel: Positions -->
             <div class="positions-panel">
                 <div class="panel-title">ตำแหน่ง (Position)</div>
-                <input type="text" class="position-search" placeholder="ค้นหา ตำแหน่ง เช่น admin">
+                <input type="text" class="position-search" placeholder="ค้นหา ตำแหน่ง เช่น Admin">
 
                 <div id="positionsList">
-                    <div class="position-item" data-role-id="1">
-                        <span>admin</span>
-                        <div class="position-actions">
-                            <button class="btn-action btn-select">Select</button>
-                            <button class="btn-action btn-edit">Edit</button>
-                        </div>
-                    </div>
-                    <div class="position-item" data-role-id="2">
-                        <span>พนักงาน</span>
-                        <div class="position-actions">
-                            <button class="btn-action btn-select">Select</button>
-                            <button class="btn-action btn-edit">Edit</button>
-                        </div>
-                    </div>
-                    <div class="position-item" data-role-id="3">
-                        <span>คนขับรถ</span>
-                        <div class="position-actions">
-                            <button class="btn-action btn-select">Select</button>
-                            <button class="btn-action btn-edit">Edit</button>
-                        </div>
-                    </div>
+                    <!-- Roles will be loaded from database -->
+                    <p style="text-align:center; padding:20px; color:#999;">กำลังโหลดข้อมูล...</p>
                 </div>
             </div>
 
@@ -51,42 +32,12 @@
                     <div class="tab role-tab">ลบ Role</div>
                 </div>
 
-                <div class="permissions-title" id="permissionTitle">Permission for: admin</div>
+                <div class="permissions-title" id="permissionTitle">Permission for: (กรุณาเลือก Role)</div>
                 <div class="permissions-subtitle">ติ๊กเพื่อมอบ/ยกเลิกสิทธิ์</div>
 
                 <div class="menu-grid" id="menuGrid">
-                    <div class="menu-item" data-permission-id="1">
-                        <div class="checkbox"></div>
-                        <span><span class="menu-icon">📅</span> การจองห้องประชุม</span>
-                    </div>
-                    <div class="menu-item" data-permission-id="2">
-                        <div class="checkbox"></div>
-                        <span><span class="menu-icon">👤</span> โปรไฟล์</span>
-                    </div>
-                    <div class="menu-item" data-permission-id="3">
-                        <div class="checkbox"></div>
-                        <span><span class="menu-icon">🔔</span> การแจ้งเตือน</span>
-                    </div>
-                    <div class="menu-item" data-permission-id="4">
-                        <div class="checkbox"></div>
-                        <span><span class="menu-icon">📋</span> ตารางใช้ห้องงานทุน</span>
-                    </div>
-                    <div class="menu-item" data-permission-id="5">
-                        <div class="checkbox"></div>
-                        <span><span class="menu-icon">🔧</span> จัดการสิทธิ์</span>
-                    </div>
-                    <div class="menu-item" data-permission-id="6">
-                        <div class="checkbox"></div>
-                        <span><span class="menu-icon">👥</span> แบบ/ปลดบทบาท Users</span>
-                    </div>
-                    <div class="menu-item" data-permission-id="7">
-                        <div class="checkbox"></div>
-                        <span><span class="menu-icon">⚙️</span> จัดการห้องประชุม</span>
-                    </div>
-                    <div class="menu-item" data-permission-id="8">
-                        <div class="checkbox"></div>
-                        <span><span class="menu-icon">📊</span> Dashboard</span>
-                    </div>
+                    <!-- Permissions will be loaded from database -->
+                    <p style="text-align:center; padding:20px; color:#999;">กำลังโหลดข้อมูล...</p>
                 </div>
 
                 <div class="action-buttons">

@@ -4,67 +4,74 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// การเชื่อมต่อฐานข้อมูล
-$host = 'localhost';
-$dbname = 'db_amita';  // แก้ไขชื่อฐานข้อมูลให้ตรงกับภาพ
-$username = 'root';
-$password = '';
+require_once __DIR__ . '/../database.php';
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-} catch(PDOException $e) {
-    echo json_encode([
-        'success' => false, 
-        'message' => 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ: ' . $e->getMessage()
-    ], JSON_UNESCAPED_UNICODE);
-    exit;
-}
+$database = new Database();
+$pdo = $database->getConnection();
+
 
 $method = $_SERVER['REQUEST_METHOD'];
 
 // GET - ดึงข้อมูล roles และ permissions
 if ($method === 'GET') {
+    
+    // 1. ดึงรายการ roles ทั้งหมด
     if (isset($_GET['action']) && $_GET['action'] === 'get_roles') {
         try {
-            // ดึงรายการ roles ทั้งหมด - แก้ไขชื่อตารางเป็น role (ไม่มี s)
             $stmt = $pdo->query("SELECT role_id, role_name FROM role ORDER BY role_id");
             $roles = $stmt->fetchAll();
             
             echo json_encode([
                 'success' => true, 
-                'data' => $roles
+                'data' => $roles,
+                'count' => count($roles)
             ], JSON_UNESCAPED_UNICODE);
         } catch(Exception $e) {
             echo json_encode([
                 'success' => false, 
-                'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
+                'message' => 'เกิดข้อผิดพลาดในการดึง roles: ' . $e->getMessage()
             ], JSON_UNESCAPED_UNICODE);
         }
+        exit;
     } 
-    else if (isset($_GET['action']) && $_GET['action'] === 'get_permissions') {
+    
+    // 2. ดึงรายการ permissions ทั้งหมด
+    if (isset($_GET['action']) && $_GET['action'] === 'get_permissions') {
         try {
-            // ดึงรายการ permissions ทั้งหมด
-            $stmt = $pdo->query("SELECT permission_id, permission_name, permission_key, icon FROM permissions ORDER BY menu_order, permission_id");
+            $stmt = $pdo->query("
+                SELECT 
+                    permission_id, 
+                    permission_name, 
+                    description,
+                    created_at
+                FROM permissions 
+            ");
             $permissions = $stmt->fetchAll();
             
             echo json_encode([
                 'success' => true, 
-                'data' => $permissions
+                'data' => $permissions,
+                'count' => count($permissions)
             ], JSON_UNESCAPED_UNICODE);
         } catch(Exception $e) {
             echo json_encode([
                 'success' => false, 
-                'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
+                'message' => 'เกิดข้อผิดพลาดในการดึง permissions: ' . $e->getMessage()
             ], JSON_UNESCAPED_UNICODE);
         }
+        exit;
     }
-    else if (isset($_GET['action']) && $_GET['action'] === 'get_role_permissions' && isset($_GET['role_id'])) {
+    
+    // 3. ดึง permissions ของ role ที่เลือก
+    if (isset($_GET['action']) && $_GET['action'] === 'get_role_permissions' && isset($_GET['role_id'])) {
         try {
-            // ดึง permissions ของ role ที่เลือก - แก้ไขชื่อตารางเป็น role_permissions (ไม่ใช่ role_permission)
             $role_id = intval($_GET['role_id']);
-            $stmt = $pdo->prepare("SELECT permission_id FROM role_permissions WHERE role_id = ?");
+            
+            $stmt = $pdo->prepare("
+                SELECT permission_id 
+                FROM role_permissions 
+                WHERE role_id = ?
+            ");
             $stmt->execute([$role_id]);
             $permissions = $stmt->fetchAll(PDO::FETCH_COLUMN);
             
@@ -73,7 +80,54 @@ if ($method === 'GET') {
             
             echo json_encode([
                 'success' => true, 
-                'data' => $permissions
+                'data' => $permissions,
+                'role_id' => $role_id,
+                'count' => count($permissions)
+            ], JSON_UNESCAPED_UNICODE);
+        } catch(Exception $e) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'เกิดข้อผิดพลาดในการดึง role permissions: ' . $e->getMessage()
+            ], JSON_UNESCAPED_UNICODE);
+        }
+        exit;
+    }
+    
+    // 4. ดึงข้อมูลเต็มของ role พร้อม permissions
+    if (isset($_GET['action']) && $_GET['action'] === 'get_role_detail' && isset($_GET['role_id'])) {
+        try {
+            $role_id = intval($_GET['role_id']);
+            
+            $stmt = $pdo->prepare("SELECT role_id, role_name FROM role WHERE role_id = ?");
+            $stmt->execute([$role_id]);
+            $role = $stmt->fetch();
+            
+            if (!$role) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'ไม่พบ role ที่ระบุ'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+            
+            $stmt = $pdo->prepare("
+                SELECT 
+                    p.permission_id,
+                    p.permission_name,
+                    p.permission_key
+                FROM permissions p
+                INNER JOIN role_permissions rp ON p.permission_id = rp.permission_id
+                WHERE rp.role_id = ?
+                ORDER BY p.permission_id
+            ");
+            $stmt->execute([$role_id]);
+            $permissions = $stmt->fetchAll();
+            
+            $role['permissions'] = $permissions;
+            
+            echo json_encode([
+                'success' => true, 
+                'data' => $role
             ], JSON_UNESCAPED_UNICODE);
         } catch(Exception $e) {
             echo json_encode([
@@ -81,61 +135,69 @@ if ($method === 'GET') {
                 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
             ], JSON_UNESCAPED_UNICODE);
         }
+        exit;
     }
-    else {
-        echo json_encode([
-            'success' => false, 
-            'message' => 'Invalid action'
-        ], JSON_UNESCAPED_UNICODE);
-    }
+    
+    // Invalid action
+    echo json_encode([
+        'success' => false, 
+        'message' => 'Invalid action or missing parameters'
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
 // POST - บันทึก permissions ของ role
-else if ($method === 'POST') {
+if ($method === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     
-    if (isset($data['role_id']) && isset($data['permissions'])) {
-        $role_id = intval($data['role_id']);
-        $permissions = $data['permissions'];
-        
-        try {
-            $pdo->beginTransaction();
-            
-            // ลบ permissions เดิมของ role นี้
-            $stmt = $pdo->prepare("DELETE FROM role_permissions WHERE role_id = ?");
-            $stmt->execute([$role_id]);
-            
-            // เพิ่ม permissions ใหม่
-            if (!empty($permissions) && is_array($permissions)) {
-                $stmt = $pdo->prepare("INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?)");
-                foreach ($permissions as $permission_id) {
-                    $stmt->execute([$role_id, intval($permission_id)]);
-                }
-            }
-            
-            $pdo->commit();
-            echo json_encode([
-                'success' => true, 
-                'message' => 'บันทึกสิทธิ์สำเร็จ'
-            ], JSON_UNESCAPED_UNICODE);
-        } catch(Exception $e) {
-            $pdo->rollBack();
-            echo json_encode([
-                'success' => false, 
-                'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
-            ], JSON_UNESCAPED_UNICODE);
-        }
-    } else {
+    if (empty($data['role_id']) || !isset($data['permissions'])) {
         echo json_encode([
             'success' => false, 
-            'message' => 'ข้อมูลไม่ครบถ้วน'
+            'message' => 'ข้อมูลไม่ครบถ้วน (ต้องมี role_id และ permissions)'
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    
+    $role_id = intval($data['role_id']);
+    $permissions = $data['permissions'];
+    
+    try {
+        $pdo->beginTransaction();
+        
+        // ลบ permissions เดิมของ role นี้ทั้งหมด
+        $stmt = $pdo->prepare("DELETE FROM role_permissions WHERE role_id = ?");
+        $stmt->execute([$role_id]);
+        
+        // เพิ่ม permissions ใหม่
+        if (!empty($permissions) && is_array($permissions)) {
+            $stmt = $pdo->prepare("INSERT INTO role_permissions (role_id, permission_id) VALUES (?, ?)");
+            foreach ($permissions as $permission_id) {
+                $stmt->execute([$role_id, intval($permission_id)]);
+            }
+        }
+        
+        $pdo->commit();
+        
+        echo json_encode([
+            'success' => true, 
+            'message' => 'บันทึกสิทธิ์สำเร็จ',
+            'role_id' => $role_id,
+            'permissions_count' => count($permissions)
+        ], JSON_UNESCAPED_UNICODE);
+    } catch(Exception $e) {
+        $pdo->rollBack();
+        echo json_encode([
+            'success' => false, 
+            'message' => 'เกิดข้อผิดพลาดในการบันทึก: ' . $e->getMessage()
         ], JSON_UNESCAPED_UNICODE);
     }
+    exit;
 }
-else {
-    echo json_encode([
-        'success' => false, 
-        'message' => 'Method not allowed'
-    ], JSON_UNESCAPED_UNICODE);
-}
+
+// Method not allowed
+echo json_encode([
+    'success' => false, 
+    'message' => 'Method not allowed (รองรับเฉพาะ GET และ POST)'
+], JSON_UNESCAPED_UNICODE);
+exit;
 ?>

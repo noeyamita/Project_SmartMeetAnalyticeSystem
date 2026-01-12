@@ -1,5 +1,7 @@
-// ใช้ relative path แทน absolute path
-const API_URL = './get_role_permissions.php';  // เปลี่ยนจาก 'get_role_permissions.php'
+// ใช้ API_BASE สำหรับเรียก API
+const API_BASE = "src/api/";
+const API_URL = API_BASE + 'get_role_permissions.php';
+
 let currentRoleId = null;
 let originalPermissions = [];
 
@@ -14,7 +16,7 @@ async function loadRoles() {
         if (!contentType || !contentType.includes('application/json')) {
             const text = await response.text();
             console.error('Response is not JSON:', text.substring(0, 200));
-            showNotification('ไฟล์ PHP ไม่พบหรือไม่สามารถเรียกใช้งานได้', 'error');
+            showNotification('❌ ไฟล์ PHP ไม่พบหรือไม่สามารถเรียกใช้งานได้', 'error');
             return;
         }
 
@@ -22,13 +24,20 @@ async function loadRoles() {
         console.log('Roles response:', result);
 
         if (result.success) {
-            displayRoles(result.data);
+            if (result.data && result.data.length > 0) {
+                displayRoles(result.data);
+                showNotification(`✅ โหลด ${result.count} Roles สำเร็จ`, 'success');
+            } else {
+                document.getElementById('positionsList').innerHTML =
+                    '<p style="text-align:center; padding:20px; color:#999;">ไม่มีข้อมูล Role ในฐานข้อมูล</p>';
+                showNotification('⚠️ ไม่พบข้อมูล Role ในระบบ', 'error');
+            }
         } else {
-            showNotification('โหลด roles ไม่สำเร็จ: ' + result.message, 'error');
+            showNotification('❌ โหลด roles ไม่สำเร็จ: ' + result.message, 'error');
         }
     } catch (error) {
         console.error('Error loading roles:', error);
-        showNotification('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message, 'error');
+        showNotification('❌ เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message, 'error');
     }
 }
 
@@ -43,7 +52,7 @@ async function loadPermissions() {
         if (!contentType || !contentType.includes('application/json')) {
             const text = await response.text();
             console.error('Response is not JSON:', text.substring(0, 200));
-            showNotification('ไฟล์ PHP ไม่พบหรือไม่สามารถเรียกใช้งานได้', 'error');
+            showNotification('❌ ไฟล์ PHP ไม่พบหรือไม่สามารถเรียกใช้งานได้', 'error');
             return;
         }
 
@@ -51,13 +60,20 @@ async function loadPermissions() {
         console.log('Permissions response:', result);
 
         if (result.success) {
-            displayMenuItems(result.data);
+            if (result.data && result.data.length > 0) {
+                displayMenuItems(result.data);
+                showNotification(`✅ โหลด ${result.count} เมนูสำเร็จ`, 'success');
+            } else {
+                document.getElementById('menuGrid').innerHTML =
+                    '<p style="text-align:center; padding:20px; color:#999;">ไม่มีข้อมูลเมนูในฐานข้อมูล</p>';
+                showNotification('⚠️ ไม่พบข้อมูลเมนูในระบบ', 'error');
+            }
         } else {
-            showNotification('โหลดเมนูไม่สำเร็จ: ' + result.message, 'error');
+            showNotification('❌ โหลดเมนูไม่สำเร็จ: ' + result.message, 'error');
         }
     } catch (error) {
         console.error('Error loading permissions:', error);
-        showNotification('เกิดข้อผิดพลาดในการโหลดเมนู: ' + error.message, 'error');
+        showNotification('❌ เกิดข้อผิดพลาดในการโหลดเมนู: ' + error.message, 'error');
     }
 }
 
@@ -80,13 +96,13 @@ function displayRoles(roles) {
             <span>${role.role_name}</span>
             <div class="position-actions">
                 <button class="btn-action btn-select" onclick="selectRole(${role.role_id}, '${role.role_name}')">Select</button>
-                <button class="btn-action btn-edit">Edit</button>
+                <button class="btn-action btn-edit" onclick="editRole(${role.role_id}, '${role.role_name}')">Edit</button>
             </div>
         `;
         positionsList.appendChild(div);
     });
 
-    console.log('Displayed', roles.length, 'roles');
+    console.log('✅ Displayed', roles.length, 'roles');
 }
 
 // แสดงเมนู items
@@ -106,13 +122,13 @@ function displayMenuItems(permissions) {
         div.dataset.permissionId = perm.permission_id;
         div.innerHTML = `
             <div class="checkbox"></div>
-            <span><span class="menu-icon">${perm.icon || '📌'}</span> ${perm.permission_name}</span>
+             ${perm.permission_name}</span>
         `;
         div.addEventListener('click', () => togglePermission(div));
         menuGrid.appendChild(div);
     });
 
-    console.log('Displayed', permissions.length, 'menu items');
+    console.log('✅ Displayed', permissions.length, 'menu items');
 }
 
 // เลือก role
@@ -147,13 +163,13 @@ async function loadRolePermissions(roleId) {
         if (result.success) {
             originalPermissions = [...result.data];
             updateMenuDisplay(result.data);
-            showNotification('โหลดสิทธิ์สำเร็จ', 'success');
+            showNotification(`✅ โหลดสิทธิ์สำเร็จ (${result.count} เมนู)`, 'success');
         } else {
-            showNotification('โหลดสิทธิ์ไม่สำเร็จ: ' + result.message, 'error');
+            showNotification('❌ โหลดสิทธิ์ไม่สำเร็จ: ' + result.message, 'error');
         }
     } catch (error) {
         console.error('Error loading role permissions:', error);
-        showNotification('เกิดข้อผิดพลาดในการโหลดสิทธิ์: ' + error.message, 'error');
+        showNotification('❌ เกิดข้อผิดพลาดในการโหลดสิทธิ์: ' + error.message, 'error');
     }
 }
 
@@ -179,7 +195,7 @@ function togglePermission(element) {
 // บันทึก permissions
 async function savePermissions() {
     if (!currentRoleId) {
-        showNotification('กรุณาเลือก Role ก่อน', 'error');
+        showNotification('⚠️ กรุณาเลือก Role ก่อน', 'error');
         return;
     }
 
@@ -206,14 +222,14 @@ async function savePermissions() {
         console.log('Save response:', result);
 
         if (result.success) {
-            showNotification('บันทึกสิทธิ์สำเร็จ', 'success');
+            showNotification(`✅ บันทึกสิทธิ์สำเร็จ (${result.permissions_count} เมนู)`, 'success');
             originalPermissions = [...permissions];
         } else {
-            showNotification('บันทึกไม่สำเร็จ: ' + result.message, 'error');
+            showNotification('❌ บันทึกไม่สำเร็จ: ' + result.message, 'error');
         }
     } catch (error) {
         console.error('Error saving permissions:', error);
-        showNotification('เกิดข้อผิดพลาดในการบันทึก: ' + error.message, 'error');
+        showNotification('❌ เกิดข้อผิดพลาดในการบันทึก: ' + error.message, 'error');
     }
 }
 
@@ -221,10 +237,16 @@ async function savePermissions() {
 function resetPermissions() {
     if (currentRoleId) {
         updateMenuDisplay(originalPermissions);
-        showNotification('ยกเลิกการแก้ไขแล้ว', 'success');
+        showNotification('↩️ ยกเลิกการแก้ไขแล้ว', 'success');
     } else {
-        showNotification('กรุณาเลือก Role ก่อน', 'error');
+        showNotification('⚠️ กรุณาเลือก Role ก่อน', 'error');
     }
+}
+
+// Edit role (placeholder function)
+function editRole(roleId, roleName) {
+    showNotification(`✏️ กำลังแก้ไข Role: ${roleName} (ID: ${roleId})`, 'success');
+    // สามารถเพิ่มฟังก์ชันแก้ไขชื่อ role ได้ที่นี่
 }
 
 // แสดง notification
@@ -252,8 +274,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // โหลดข้อมูลเมื่อเริ่มต้น
-    console.log('Page loaded, loading initial data...');
-    console.log('API URL:', API_URL);
-    loadRoles();
-    loadPermissions();
+    console.log('🚀 Page loaded, loading initial data...');
+    console.log('📍 API URL:', API_URL);
+
+    // แสดง loading indicator
+    showNotification('⏳ กำลังโหลดข้อมูล...', 'success');
+
+    // โหลดข้อมูลแบบ async
+    Promise.all([loadRoles(), loadPermissions()]).then(() => {
+        console.log('✅ All data loaded successfully');
+    }).catch(error => {
+        console.error('❌ Error loading data:', error);
+        showNotification('❌ เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
+    });
 });
