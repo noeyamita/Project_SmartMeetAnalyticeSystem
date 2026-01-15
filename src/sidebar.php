@@ -45,7 +45,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
     <nav class="sidebar-nav">
         <a href="dashboard.php" class="nav-item <?php echo ($current_page == 'dashboard') ? 'active' : ''; ?>">
             <i class="fas fa-home"></i>
-            <span>ออกห้องประชุม</span>
+            <span>จองห้องประชุม</span>
         </a>
         
         <a href="history.php" class="nav-item <?php echo ($current_page == 'history') ? 'active' : ''; ?>">
@@ -68,7 +68,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
         
         <a href="room-management.php" class="nav-item <?php echo ($current_page == 'room-management') ? 'active' : ''; ?>">
             <i class="fas fa-th"></i>
-            <span>คำขอให้ห้องแนบ</span>
+            <span>คำขอให้ห้องแทน</span>
             <?php if ($cancellation_count > 0): ?>
                 <span class="badge"><?php echo $cancellation_count; ?></span>
             <?php endif; ?>
@@ -76,12 +76,12 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
         
         <a href="equipment.php" class="nav-item <?php echo ($current_page == 'equipment') ? 'active' : ''; ?>">
             <i class="fas fa-toolbox"></i>
-            <span>จัดการอีครับ</span>
+            <span>จัดการอุปกรณ์</span>
         </a>
         
         <a href="users.php" class="nav-item <?php echo ($current_page == 'users') ? 'active' : ''; ?>">
             <i class="fas fa-users"></i>
-            <span>แบบ/ปิดแนบ users</span>
+            <span>แบน/ปลดแบน users</span>
         </a>
         
         <a href="settings.php" class="nav-item <?php echo ($current_page == 'settings') ? 'active' : ''; ?>">
