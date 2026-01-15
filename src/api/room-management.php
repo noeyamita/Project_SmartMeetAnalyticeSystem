@@ -116,7 +116,7 @@ if ($method === 'GET') {
             
         case 'getStatus':
             try {
-                $stmt = $pdo->query("SELECT * FROM status ORDER BY status_id ASC");
+                $stmt = $pdo->query("SELECT * FROM room_status ORDER BY roomstatus_id ASC");
                 $statuses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 sendResponse(true, $statuses, 'ดึงข้อมูลสถานะสำเร็จ');
             } catch (PDOException $e) {

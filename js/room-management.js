@@ -57,7 +57,7 @@ async function loadStatuses() {
     try {
         const response = await fetch(`${API_URL}?action=getStatus`);
         const data = await response.json();
-        
+
         if (data.success) {
             statuses = data.data;
             populateStatusDropdown();
@@ -70,8 +70,8 @@ async function loadStatuses() {
 // เติมข้อมูลลง dropdown สถานะ
 function populateStatusDropdown() {
     const statusSelect = document.getElementById('status');
-    statusSelect.innerHTML = statuses.map(status => 
-        `<option value="${status.status_id}">${status.status_name}</option>`
+    statusSelect.innerHTML = statuses.map(status =>
+        `<option value="${status.roomstatus_id}">${status.roomstatus_name}</option>`
     ).join('');
 }
 
@@ -101,7 +101,7 @@ function handleImagePreview(e) {
 
     // แสดง Preview
     const reader = new FileReader();
-    reader.onload = function(event) {
+    reader.onload = function (event) {
         imagePreview.innerHTML = `
             <img src="${event.target.result}" alt="Preview">
             <button type="button" class="remove-image" onclick="removeImage()">🗑️ ลบรูปภาพ</button>
@@ -122,7 +122,7 @@ async function loadRooms() {
     try {
         const response = await fetch(`${API_URL}?action=getAll`);
         const data = await response.json();
-        
+
         if (data.success) {
             Meeting_Rooms = data.data;
             displayRooms(Meeting_Rooms);
@@ -145,14 +145,14 @@ function displayRooms(roomList) {
     }
 
     roomTableBody.innerHTML = roomList.map(room => {
-        const statusInfo = statuses.find(s => s.status_id == room.status);
-        const statusName = statusInfo ? statusInfo.status_name : 'ไม่ทราบสถานะ';
+        const statusInfo = statuses.find(s => s.roomstatus_id == room.status);
+        const statusName = statusInfo ? statusInfo.roomstatus_name : 'ไม่ทราบสถานะ';
         const statusClass = room.status == 1 ? 'status-available' : 'status-unavailable';
-        
-        const imageCell = room.image_url 
+
+        const imageCell = room.image_url
             ? `<img src="${room.image_url}" alt="${room.room_name}" class="room-image" onclick="viewImage('${room.image_url}')">`
             : '-';
-        
+
         return `
         <tr>
             <td>${room.room_id}</td>
@@ -210,7 +210,7 @@ function decimalToTime(decimal) {
 // ค้นหาห้อง
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase();
-    const filteredRooms = Meeting_Rooms.filter(room => 
+    const filteredRooms = Meeting_Rooms.filter(room =>
         room.room_name.toLowerCase().includes(searchTerm) ||
         room.floor_number.toLowerCase().includes(searchTerm) ||
         room.capacity.toString().includes(searchTerm)
@@ -221,7 +221,7 @@ function handleSearch(e) {
 // จัดการการ submit ฟอร์ม
 async function handleSubmit(e) {
     e.preventDefault();
-    
+
     const formData = new FormData();
     formData.append('action', isEditing ? 'update' : 'create');
     formData.append('room_name', document.getElementById('roomName').value);
@@ -232,13 +232,13 @@ async function handleSubmit(e) {
     formData.append('open_time', timeToDecimal(document.getElementById('openTime').value));
     formData.append('close_time', timeToDecimal(document.getElementById('closeTime').value));
     formData.append('description', document.getElementById('description').value || '');
-    
+
     // เพิ่มไฟล์รูปภาพ
     const imageFileInput = document.getElementById('imageFile');
     if (imageFileInput.files.length > 0) {
         formData.append('image', imageFileInput.files[0]);
     }
-    
+
     if (isEditing) {
         formData.append('room_id', parseInt(document.getElementById('roomId').value));
         await updateRoom(formData);
@@ -257,7 +257,7 @@ async function createRoom(formData) {
         });
 
         const result = await response.json();
-        
+
         if (result.success) {
             showToast('เพิ่มห้องประชุมสำเร็จ', 'success');
             resetForm();
@@ -283,7 +283,7 @@ async function updateRoom(formData) {
         });
 
         const result = await response.json();
-        
+
         if (result.success) {
             showToast('แก้ไขข้อมูลสำเร็จ', 'success');
             resetForm();
@@ -317,7 +317,7 @@ function editRoom(roomId) {
     document.getElementById('openTime').value = decimalToTime(room.open_time);
     document.getElementById('closeTime').value = decimalToTime(room.close_time);
     document.getElementById('description').value = room.description || '';
-    
+
     // แสดง Preview รูปภาพเดิม (ถ้ามี)
     if (room.image_url) {
         imagePreview.innerHTML = `
@@ -352,7 +352,7 @@ async function deleteRoom(roomId) {
         });
 
         const result = await response.json();
-        
+
         if (result.success) {
             showToast('ลบข้อมูลสำเร็จ', 'success');
             loadRooms();
