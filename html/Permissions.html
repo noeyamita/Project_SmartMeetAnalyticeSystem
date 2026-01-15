@@ -10,45 +10,106 @@
 
 <body>
     <iframe src="sidebar.html?page=booking" class="sidebar-frame"></iframe>
-    <div class="container">
-        <h2>ระบบจัดการสิทธิ์</h2>
 
-        <div class="content-wrapper">
-            <!-- Left Panel: Positions -->
-            <div class="positions-panel">
-                <div class="panel-title">ตำแหน่ง (Position)</div>
-                <input type="text" class="position-search" placeholder="ค้นหา ตำแหน่ง เช่น Admin">
+    <div class="main-content">
+        <div class="page-header">
+            <h1>ระบบจัดการสิทธิ์</h1>
+            <p class="subtitle">จัดการสิทธิ์การเข้าถึงระบบสำหรับแต่ละตำแหน่ง</p>
+        </div>
 
-                <div id="positionsList">
-                    <!-- Roles will be loaded from database -->
-                    <p style="text-align:center; padding:20px; color:#999;">กำลังโหลดข้อมูล...</p>
+        <div class="content-grid">
+            <!-- Left Panel: Roles List -->
+            <div class="roles-section">
+                <div class="section-header">
+                    <h2>รายการตำแหน่ง</h2>
+                    <button class="btn-add" onclick="showAddRoleModal()">
+                        <span>+</span> เพิ่มตำแหน่ง
+                    </button>
+                </div>
+
+                <input type="text" class="search-input" placeholder="🔍 ค้นหาตำแหน่ง...">
+
+                <div id="rolesList" class="roles-list">
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>กำลังโหลดข้อมูล...</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Right Panel: Permissions -->
-            <div class="permissions-panel">
-                <div class="tabs">
-                    <div class="tab active">การจัดการเมนู</div>
-                    <div class="tab role-tab">ลบ Role</div>
+            <div class="permissions-section">
+                <div class="section-header">
+                    <h2 id="permissionTitle">เลือกตำแหน่งเพื่อจัดการสิทธิ์</h2>
                 </div>
 
-                <div class="permissions-title" id="permissionTitle">Permission for: (กรุณาเลือก Role)</div>
-                <div class="permissions-subtitle">ติ๊กเพื่อมอบ/ยกเลิกสิทธิ์</div>
+                <div id="permissionsContent" class="permissions-content hidden">
+                    <p class="helper-text">เลือกเมนูที่ต้องการให้ตำแหน่งนี้เข้าถึงได้</p>
 
-                <div class="menu-grid" id="menuGrid">
-                    <!-- Permissions will be loaded from database -->
-                    <p style="text-align:center; padding:20px; color:#999;">กำลังโหลดข้อมูล...</p>
+                    <div id="menuGrid" class="menu-grid">
+                        <!-- Permissions will be loaded here -->
+                    </div>
+
+                    <div class="action-bar">
+                        <button class="btn btn-cancel" onclick="resetPermissions()">
+                            ยกเลิก
+                        </button>
+                        <button class="btn btn-save" onclick="savePermissions()">
+                            💾 บันทึกการเปลี่ยนแปลง
+                        </button>
+                    </div>
                 </div>
 
-                <div class="action-buttons">
-                    <button class="btn btn-save" onclick="savePermissions()">บันทึก</button>
-                    <button class="btn btn-cancel" onclick="resetPermissions()">ยกเลิก</button>
+                <div id="emptyState" class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h3>ยังไม่ได้เลือกตำแหน่ง</h3>
+                    <p>กรุณาเลือกตำแหน่งจากรายการด้านซ้ายเพื่อจัดการสิทธิ์</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="notification" class="notification"></div>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Add/Edit Role Modal -->
+    <div id="roleModal" class="modal">
+        <div class="modal-backdrop" onclick="closeRoleModal()"></div>
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 id="modalTitle">เพิ่มตำแหน่งใหม่</h3>
+                <button class="modal-close" onclick="closeRoleModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label">ชื่อตำแหน่ง</label>
+                <input type="text" id="roleNameInput" class="form-input" placeholder="เช่น Admin, Manager, Staff...">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeRoleModal()">ยกเลิก</button>
+                <button class="btn btn-primary" onclick="saveRole()">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-backdrop" onclick="closeDeleteModal()"></div>
+        <div class="modal-dialog modal-small">
+            <div class="modal-header">
+                <h3>ยืนยันการลบ</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-icon">⚠️</div>
+                <p id="deleteMessage">คุณต้องการลบตำแหน่งนี้หรือไม่?</p>
+                <p class="warning-text">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">ยกเลิก</button>
+                <button class="btn btn-danger" onclick="confirmDeleteRole()">ลบตำแหน่ง</button>
+            </div>
+        </div>
+    </div>
 
     <script src="js/Permissions.js"></script>
 </body>
