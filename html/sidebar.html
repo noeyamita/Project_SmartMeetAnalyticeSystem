@@ -2,11 +2,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sidebar</title>
     <link rel="stylesheet" href="css/sidebar.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
 
 <body>
     <div class="sidebar">
@@ -16,7 +13,6 @@
         </div>
 
         <nav class="sidebar-nav">
-            <!-- Available for all roles -->
             <a href="BookingMeetingRoom.html" target="_parent" class="nav-item" data-page="booking"
                 data-roles="Admin,Executive,Normal">
                 <i class="fas fa-calendar-alt"></i>
@@ -36,8 +32,7 @@
                 <span class="badge">1</span>
             </a>
 
-            <!-- Admin only -->
-            <a href="room-requests.html" target="_parent" class="nav-item" data-page="room-requests" data-roles="Admin">
+            <a href="room-requests.html" target="_parent" class="nav-item" data-page="schedule" data-roles="Admin">
                 <i class="fas fa-clipboard-list"></i>
                 <span>คำขอใช้ห้องแทน</span>
                 <span class="badge">3</span>
@@ -48,20 +43,24 @@
                 <span>จัดการสิทธิ์</span>
             </a>
 
-            <a href="user-management.html" target="_parent" class="nav-item" data-page="user-management"
+            <a href="user-roles.html" target="_parent" class="nav-item" data-page="user_roles" data-roles="Admin">
+                <i class="fas fa-user-shield"></i>
+                <span>จัดการสิทธิ์ผู้ใช้</span>
+            </a>
+
+            <a href="user-management.html" target="_parent" class="nav-item" data-page="user_management"
                 data-roles="Admin">
                 <i class="fas fa-user-slash"></i>
                 <span>แบน/ปลดแบน Users</span>
             </a>
 
-            <a href="room-management.html" target="_parent" class="nav-item" data-page="room-management"
+            <a href="room-management.html" target="_parent" class="nav-item" data-page="room_management"
                 data-roles="Admin">
                 <i class="fa-solid fa-screwdriver-wrench"></i>
                 <span>จัดการห้องประชุม</span>
             </a>
 
-            <!-- Admin and Executive -->
-            <a href="Dashboard.html" target="_parent" class="nav-item" data-page="Dashboard"
+            <a href="Dashboard.html" target="_parent" class="nav-item" data-page="dashboard"
                 data-roles="Admin,Executive">
                 <i class="fas fa-chart-line"></i>
                 <span>Dashboard</span>

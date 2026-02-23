@@ -31,12 +31,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        $_SESSION = [];
+        session_destroy();
+        session_start();
+        session_regenerate_id(true);
+
+        $roleStmt = $pdo->prepare("SELECT role_name FROM role WHERE role_id = ?");
+        $roleStmt->execute([$user['role_id']]);
+        $role = $roleStmt->fetch(PDO::FETCH_ASSOC);
+
         // สร้าง session หลังเข้าสู่ระบบสำเร็จ
         $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['fname'] = $user['fname'];
         $_SESSION['lname'] = $user['lname'];
         $_SESSION['role_id'] = $user['role_id'];
         $_SESSION['email'] = $user['email'];
+        $_SESSION['role_name'] = $role['role_name'] ?? 'Normal';
 
         session_regenerate_id(true);
 
@@ -49,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'success' => true,
             'message' => 'เข้าสู่ระบบสำเร็จ',
             'role_id' => $user['role_id'],
-            'role_name' => $role['role_name'] ?? 'Normal', // ส่งชื่อ role กลับไปด้วย
+            'role_name' => $role['role_name'] ?? 'Normal',
             'user_name' => $user['fname'] . ' ' . $user['lname']
         ]);
 
