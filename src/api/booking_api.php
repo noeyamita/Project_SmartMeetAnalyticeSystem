@@ -8,7 +8,6 @@ $pdo = $database->getConnection();
 
 
 function checkRoomAvailability($room_id, $date, $start_time, $end_time) {
-    // ตรวจสอบว่าห้องว่างในช่วงเวลานั้นหรือไม่
     $sql = "SELECT COUNT(*) FROM Bookings 
             WHERE room_id = ? 
             AND booking_date = ? 
@@ -18,7 +17,6 @@ function checkRoomAvailability($room_id, $date, $start_time, $end_time) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // ตรวจสอบว่าผู้ใช้เข้าสู่ระบบแล้วหรือไม่
     if (!isset($_SESSION['user_id'])) {
         echo json_encode(['success' => false, 'message' => 'กรุณาเข้าสู่ระบบก่อนทำการจอง']);
         exit;
