@@ -12,6 +12,7 @@ services:
       - ./js:/var/www/html/js
       - ./src:/var/www/html/src
       - ./php/apache-config.conf:/etc/apache2/conf-enabled/apache-config.conf
+      - ./vendor:/var/www/html/vendor
     depends_on:
       - mysql
     environment:

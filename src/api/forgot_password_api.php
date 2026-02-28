@@ -1,95 +1,114 @@
 <?php
-header('Content-Type: application/json');
+session_start();
+header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-if ($conn->connect_error) {
-    die(json_encode(['success' => false, 'message' => 'Database connection failed']));
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
 }
 
-$conn->set_charset("utf8");
+require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../database.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data = json_decode(file_get_contents('php://input'), true);
-    $email = $data['email'] ?? '';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
-    // ตรวจสอบว่ามีอีเมลนี้ในระบบหรือไม่
-    $stmt = $conn->prepare("SELECT id, username FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
+define('GMAIL_USER', 'noeyfriv@gmail.com');
+define('GMAIL_PASS', 'ixvjrurfxigqkthf');
+define('MAIL_NAME', 'Meeting Room System');
+define('APP_NAME',  'Meeting Room System');
+define('APP_URL',   'http://localhost:8080');
 
-    if ($result->num_rows === 0) {
-        echo json_encode(['success' => false, 'message' => 'Email not found in system']);
-        exit;
+function generateTempPassword(): string {
+    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#';
+    $pass  = '';
+    for ($i = 0; $i < 10; $i++) {
+        $pass .= $chars[random_int(0, strlen($chars) - 1)];
     }
-
-    $user = $result->fetch_assoc();
-    
-    // สร้างรหัสชั่วคราว (6 หลัก)
-    $tempPassword = sprintf("%06d", mt_rand(100000, 999999));
-    
-    // เข้ารหัสรหัสผ่านชั่วคราว
-    $hashedTempPassword = password_hash($tempPassword, PASSWORD_BCRYPT);
-    
-    // อัพเดทรหัสผ่านเป็นรหัสชั่วคราวเลย (ไม่มีการหมดอายุ)
-    $stmt = $conn->prepare("UPDATE users SET password = ? WHERE email = ?");
-    $stmt->bind_param("ss", $hashedTempPassword, $email);
-    
-    if ($stmt->execute()) {
-        // ส่งอีเมล
-        $to = $email;
-        $subject = "รหัสผ่านชั่วคราวสำหรับเข้าสู่ระบบ";
-        $message = "
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .code-box { background: #f0f0f0; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; border-radius: 8px; margin: 20px 0; }
-                .warning { color: #d9534f; font-size: 14px; }
-            </style>
-        </head>
-        <body>
-            <div class='container'>
-                <h2>รหัสผ่านชั่วคราวของคุณ</h2>
-                <p>สวัสดี,</p>
-                <p>คุณได้ขอรหัสผ่านชั่วคราวสำหรับเข้าสู่ระบบ กรุณาใช้รหัสด้านล่างเพื่อเข้าสู่ระบบ:</p>
-                
-                <div class='code-box'>
-                    {$tempPassword}
-                </div>
-                
-                <p class='warning'>⚠️ นี่คือรหัสผ่านชั่วคราวของคุณ</p>
-                <p>คุณสามารถใช้รหัสนี้เข้าสู่ระบบได้ทันที และสามารถเปลี่ยนรหัสผ่านใหม่ได้ภายหลัง</p>
-                
-                <p>หากคุณไม่ได้ขอรหัสนี้ กรุณาเพิกเฉยต่ออีเมลนี้</p>
-            </div>
-        </body>
-        </html>
-        ";
-        
-        $headers = "MIME-Version: 1.0" . "\r\n";
-        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-        $headers .= "From: noreply@yourwebsite.com" . "\r\n";
-        
-        // ใช้ mail() function ของ PHP (ต้องตั้งค่า mail server ก่อน)
-        if (mail($to, $subject, $message, $headers)) {
-            echo json_encode([
-                'success' => true, 
-                'message' => 'Temporary password has been sent to your email',
-                'debug_code' => $tempPassword // ลบออกใน production
-            ]);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Failed to send email']);
-        }
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to generate temporary password']);
-    }
-    
-    $stmt->close();
+    return $pass;
 }
 
-$conn->close();
-?>
+$ipKey = 'fp_' . md5($_SERVER['REMOTE_ADDR'] ?? '');
+$now = time();
+
+$_SESSION[$ipKey] = array_filter($_SESSION[$ipKey] ?? [], fn($t) => $now - $t < 300);
+if (count($_SESSION[$ipKey]) >= 3) {
+    echo json_encode(['success' => false, 'message' => 'Too many requests. Please wait 5 minutes.']);
+    exit;
+}
+$_SESSION[$ipKey][] = $now;
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+    exit;
+}
+
+$body  = json_decode(file_get_contents('php://input'), true);
+$email = trim(strtolower($body['email'] ?? ''));
+
+if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(['success' => false, 'message' => 'Invalid email address']);
+    exit;
+}
+
+$database = new Database();
+$pdo = $database->getConnection();
+
+$stmt = $pdo->prepare("
+    SELECT user_id, fname, lname, email
+    FROM users
+    WHERE email = ?
+    LIMIT 1
+");
+$stmt->execute([$email]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user) {
+    echo json_encode(['success' => false, 'message' => 'อีเมลนี้ยังไม่มีบัญชีในระบบ']);
+    exit;
+}
+
+$tempPass = generateTempPassword();
+$hashed = password_hash($tempPass, PASSWORD_BCRYPT, ['cost' => 12]);
+
+$stmt = $pdo->prepare("UPDATE users SET user_password = ? WHERE user_id = ?");
+$stmt->execute([$hashed, $user['user_id']]);
+
+$username = htmlspecialchars($user['fname'] . ' ' . $user['lname']);
+$year = date('Y');
+
+$emailHtml = "
+<h2>สวัสดี {$username}</h2>
+<p>รหัสผ่านชั่วคราวของคุณคือ:</p>
+<h1>{$tempPass}</h1>
+<p>กรุณาใช้รหัสผ่านนี้เพื่อเข้าสู่ระบบและเปลี่ยนรหัสผ่านของคุณทันที</p>
+
+$mail = new PHPMailer(true);
+
+try {
+    $mail->isSMTP();
+    $mail->Host       = 'smtp.gmail.com';
+    $mail->SMTPAuth   = true;
+    $mail->Username   = GMAIL_USER;
+    $mail->Password   = GMAIL_PASS;
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $mail->Port       = 587;
+    $mail->CharSet    = 'UTF-8';
+
+    $mail->setFrom(GMAIL_USER, MAIL_NAME);
+    $mail->addAddress($email, $username);
+    $mail->isHTML(true);
+    $mail->Subject = 'รหัสผ่านชั่วคราว - ' . APP_NAME;
+    $mail->Body    = $emailHtml;
+    $mail->AltBody = "รหัสผ่านชั่วคราว: {$tempPass}";
+
+    $mail->send();
+    echo json_encode(['success' => true, 'message' => 'ส่งรหัสผ่านชั่วคราวไปยังอีเมลแล้ว']);
+
+} catch (Exception $e) {
+    error_log('[ForgotPassword] ' . $mail->ErrorInfo);
+    echo json_encode(['success' => false, 'message' => 'Failed to send email']);
+}
