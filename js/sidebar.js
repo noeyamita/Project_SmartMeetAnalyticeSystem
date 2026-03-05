@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", async function () {
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.style.visibility = "hidden";
+  });
 
   let userRole = sessionStorage.getItem("userRole");
   let roleId = sessionStorage.getItem("roleId");
@@ -46,6 +49,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     if (allowedPermissions.includes(dataPage)) {
       item.style.display = "flex";
+      item.style.visibility = "visible";
       console.log("Shown:", menuName);
     } else {
       item.style.display = "none";
@@ -53,16 +57,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 
-
   setActiveMenu();
 });
 
 function useFallback(userRole) {
-  console.warn("⚠️ Using fallback data-roles mode");
+  console.warn("Using fallback data-roles mode");
   document.querySelectorAll(".nav-item").forEach((item) => {
     const allowedRoles = item.getAttribute("data-roles");
     if (allowedRoles) {
-      item.style.display = allowedRoles.split(",").includes(userRole) ? "flex" : "none";
+      const show = allowedRoles.split(",").includes(userRole);
+      item.style.display = show ? "flex" : "none";
+      item.style.visibility = show ? "visible" : "hidden";
     }
   });
   setActiveMenu();

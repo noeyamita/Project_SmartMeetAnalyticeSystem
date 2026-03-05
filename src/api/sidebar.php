@@ -41,6 +41,12 @@ $role_id = $_SESSION['role_id'] ?? 0;
             
             <?php endif; ?>
 
+            <?php if ($role_id == 1 || $role_id == 2 || $role_id == 3): ?>
+            <li class="nav-item" data-page="dashboard">
+                <a href="Dashboard.php">📊 Dashboard</a>
+            </li>
+            <?php endif; ?>
+
             <?php if ($role_id != 0): // ถ้ามีใครล็อกอินอยู่ ?>
             <li class="nav-item" data-page="logout">
                 <a href="logout.php">🚪 ออกจากระบบ</a>

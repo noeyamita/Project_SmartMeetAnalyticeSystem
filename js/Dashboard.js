@@ -5,6 +5,21 @@ let refreshInterval = null;
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Dashboard loaded');
 
+    // ✅ ใช้ key ให้ตรงกับที่ login.html save ไว้ (userRole, roleId)
+    const roleName = sessionStorage.getItem('userRole') || '';
+    const roleId = parseInt(sessionStorage.getItem('roleId') || '0');
+    const adminTabBtn = document.getElementById('adminTabBtn');
+
+    console.log('🔑 userRole:', roleName, '| roleId:', roleId);
+
+    // แสดง tab Admin เฉพาะ Admin (role_id=1) และ Executive (role_id=2) เท่านั้น
+    const isAdminOrExecutive = roleId === 1 || roleId === 2 ||
+        roleName === 'Admin' || roleName === 'Executive';
+
+    if (!isAdminOrExecutive && adminTabBtn) {
+        adminTabBtn.style.display = 'none';
+    }
+
     // โหลดข้อมูลเริ่มต้น
     loadUserDashboard();
 

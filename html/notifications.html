@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การแจ้งเตือน</title>
+    <link rel="stylesheet" href="css/Dashboard.css">
+    <link rel="stylesheet" href="css/notifications.css">
+</head>
+
+<body>
+    <iframe src="sidebar.html?page=notifications" class="sidebar-frame"></iframe>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="notifications-header">
+                <div>
+                    <h1>🔔 การแจ้งเตือน</h1>
+                    <p class="muted" id="unreadCount">กำลังโหลด...</p>
+                </div>
+                <button class="mark-all-btn" onclick="markAllRead()">✅ อ่านทั้งหมด</button>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="filterNotifications('all', this)">ทั้งหมด</button>
+                <button class="filter-tab" onclick="filterNotifications('room_moved', this)">🔄 ย้ายห้อง</button>
+                <button class="filter-tab" onclick="filterNotifications('reminder_24h', this)">⏰ 24 ชั่วโมง</button>
+                <button class="filter-tab" onclick="filterNotifications('reminder_12h', this)">⏰ 12 ชั่วโมง</button>
+                <button class="filter-tab" onclick="filterNotifications('reminder_2h', this)">🔔 2 ชั่วโมง</button>
+            </div>
+
+            <div class="notification-list" id="notificationList">
+                <div class="empty-state">
+                    <div class="icon">⏳</div>กำลังโหลด...
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/notifications.js"></script>
+</body>
+
+</html>
