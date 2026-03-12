@@ -72,6 +72,9 @@ async function markRead(id, el) {
     if (n) n.is_read = 1;
 
     updateUnreadCount(allNotifications.filter(n => n.is_read == 0).length);
+    updateUnreadCount(newCount);
+    //sidebar iframe อัพเดตสถานะทันที
+    notifySidebarBadge(newCount);
 }
 
 // Mark อ่านแล้ว - ทั้งหมด
@@ -85,10 +88,25 @@ async function markAllRead() {
     allNotifications.forEach(n => n.is_read = 1);
     renderNotifications(allNotifications);
     updateUnreadCount(0);
+    notifySidebarBadge(0);
 }
 
 // อัพเดต unread counter
 function updateUnreadCount(count) {
     document.getElementById('unreadCount').textContent =
         count > 0 ? `มี ${count} การแจ้งเตือนที่ยังไม่ได้อ่าน` : 'อ่านครบแล้ว';
+}
+
+function notifySidebarBadge(count) {
+    try {
+        const sidebarFrame = window.top.document.querySelector('iframe.sidebar-frame');
+        if (sidebarFrame?.contentWindow) {
+            sidebarFrame.contentWindow.postMessage({
+                type: 'refreshNotificationBadge',
+                count: count
+            }, '*');
+        }
+    } catch (e) {
+        console.warn('notifySidebarBadge error:', e);
+    }
 }

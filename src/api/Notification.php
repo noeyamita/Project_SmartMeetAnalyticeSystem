@@ -1,5 +1,12 @@
 <?php
 require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+define('GMAIL_USER', 'smartmeet.system@gmail.com');
+define('GMAIL_PASS', 'pwjlsptzemewystp');
+define('NOTI_MAIL_NAME',  'SmartMeet Analytics System');
 
 class NotificationHelper {
     private $pdo;
@@ -8,10 +15,11 @@ class NotificationHelper {
         $db = new Database();
         $this->pdo = $db->getConnection();
     }
+    // ส่ง Notification ทั้ง in-app และ Email
 
-    // ส่ง Notification ทั้ง in-app และ email
     public function sendNotification($user_id, $booking_id, $type, $message, $email, $subject) {
         try {
+            //บันทึก in-app (INSERT IGNORE ป้องกัน duplicate)
             $stmt = $this->pdo->prepare("
                 INSERT IGNORE INTO Notifications (user_id, booking_id, type, message, is_read, email_sent, sent_at)
                 VALUES (?, ?, ?, ?, 0, 0, NOW())
@@ -19,63 +27,81 @@ class NotificationHelper {
             $stmt->execute([$user_id, $booking_id, $type, $message]);
 
             if ($stmt->rowCount() === 0) {
-                // ถูก insert ไปแล้ว (duplicate) ข้ามไป
                 return true;
             }
             $emailSent = $this->sendEmail($email, $subject, $message);
 
             if ($emailSent) {
-                $updateStmt = $this->pdo->prepare("
+                $this->pdo->prepare("
                     UPDATE Notifications SET email_sent = 1 
                     WHERE user_id = ? AND booking_id = ? AND type = ?
-                ");
-                $updateStmt->execute([$user_id, $booking_id, $type]);
+                ")->execute([$user_id, $booking_id, $type]);
             }
+
             return true;
+
         } catch (Exception $e) {
             error_log("sendNotification error: " . $e->getMessage());
             return false;
         }
     }
-
-    // ส่ง Email ด้วย PHP mail()
     private function sendEmail($to, $subject, $body) {
-        $headers  = "MIME-Version: 1.0\r\n";
-        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-        $headers .= "From: ระบบจองห้องประชุม <no-reply@yourdomain.com>\r\n";
+        $mail = new PHPMailer(true);
+        try {
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = NOTI_GMAIL_USER;
+            $mail->Password   = NOTI_GMAIL_PASS;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+            $mail->CharSet    = 'UTF-8';
 
-        $htmlBody = "
-        <div style='font-family: Sarabun, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;'>
-            <div style='background: linear-gradient(135deg, #3b5998, #192f6a); padding: 20px; text-align: center;'>
+            $mail->setFrom(NOTI_GMAIL_USER, NOTI_MAIL_NAME);
+            $mail->addAddress($to);
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body    = $this->buildEmailHTML($body);
+            $mail->AltBody = $body;
+
+            $mail->send();
+            return true;
+
+        } catch (Exception $e) {
+            error_log("sendEmail error: " . $mail->ErrorInfo);
+            return false;
+        }
+    }
+
+    // สร้างTemplate สำหรับ Email
+    private function buildEmailHTML($body) {
+        $htmlBody = nl2br(htmlspecialchars($body));
+
+        return "
+        <div style='font-family: Sarabun, sans-serif; max-width: 600px; margin: auto; 
+                    border: 1px solid #ddd; border-radius: 8px; overflow: hidden;'>
+            <div style='background: linear-gradient(135deg, #3b5998, #192f6a); 
+                        padding: 20px; text-align: center;'>
                 <h2 style='color: white; margin: 0;'>📅 ระบบจองห้องประชุม</h2>
             </div>
-            <div style='padding: 24px; background: #fff;'>
-                <p style='font-size: 16px; color: #333;'>{$body}</p>
+            <div style='padding: 24px; background: #fff; line-height: 1.8;'>
+                <p style='font-size: 16px; color: #333;'>{$htmlBody}</p>
             </div>
-            <div style='background: #f4f6fb; padding: 12px; text-align: center; font-size: 12px; color: #999;'>
+            <div style='background: #f4f6fb; padding: 12px; text-align: center; 
+                        font-size: 12px; color: #999;'>
                 อีเมลนี้ส่งโดยอัตโนมัติ กรุณาอย่าตอบกลับ
             </div>
         </div>";
-
-        return mail($to, "=?UTF-8?B?" . base64_encode($subject) . "?=", $htmlBody, $headers);
     }
 
-    // 1. แจ้งเตือนทันทีเมื่อถูกย้ายห้อง
     public function notifyRoomMoved($booking_id) {
         try {
             $stmt = $this->pdo->prepare("
                 SELECT 
-                    b.booking_id,
-                    b.user_id,
-                    b.booking_date,
-                    b.start_time,
-                    b.end_time,
-                    b.purpose,
-                    b.room_id,
-                    b.original_room_id,
-                    u.email,
-                    u.fname,
-                    u.lname,
+                    b.booking_id, b.user_id, b.booking_date,
+                    b.start_time, b.end_time, b.purpose,
+                    b.room_id, b.original_room_id,
+                    u.email, u.fname, u.lname,
                     mr_new.room_name AS new_room_name,
                     mr_old.room_name AS old_room_name
                 FROM Bookings b
@@ -104,16 +130,12 @@ class NotificationHelper {
                      . "ย้ายจาก: {$oldRoom}\n"
                      . "ไปยัง: {$newRoom}";
 
-            $subject = "แจ้งเตือน: การจองของคุณถูกย้ายห้อง - {$date}";
-
             return $this->sendNotification(
-                $booking['user_id'],
-                $booking_id,
-                'room_moved',
-                $message,
-                $booking['email'],
-                $subject
+                $booking['user_id'], $booking_id, 'room_moved',
+                $message, $booking['email'],
+                "แจ้งเตือน: การจองของคุณถูกย้ายห้อง - {$date}"
             );
+
         } catch (Exception $e) {
             error_log("notifyRoomMoved error: " . $e->getMessage());
             return false;

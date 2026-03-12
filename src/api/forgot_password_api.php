@@ -16,10 +16,10 @@ require_once __DIR__ . '/../database.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-define('GMAIL_USER', 'noeyfriv@gmail.com');
-define('GMAIL_PASS', 'ixvjrurfxigqkthf');
-define('MAIL_NAME', 'Meeting Room System');
-define('APP_NAME',  'Meeting Room System');
+define('GMAIL_USER', 'smartmeet.system@gmail.com');
+define('GMAIL_PASS', 'pwjlsptzemewystp');
+define('MAIL_NAME', 'SmartMeet Analytics System');
+define('APP_NAME',  'SmartMeet Analytics System');
 define('APP_URL',   'http://localhost:8080');
 
 function generateTempPassword(): string {
@@ -84,7 +84,7 @@ $emailHtml = "
 <h2>สวัสดี {$username}</h2>
 <p>รหัสผ่านชั่วคราวของคุณคือ:</p>
 <h1>{$tempPass}</h1>
-<p>กรุณาใช้รหัสผ่านนี้เพื่อเข้าสู่ระบบและเปลี่ยนรหัสผ่านของคุณทันที</p>
+<p>กรุณาใช้รหัสผ่านนี้เพื่อเข้าสู่ระบบและเปลี่ยนรหัสผ่านของคุณทันที</p> ";
 
 $mail = new PHPMailer(true);
 

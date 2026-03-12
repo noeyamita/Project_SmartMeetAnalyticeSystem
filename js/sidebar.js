@@ -6,18 +6,14 @@ document.addEventListener("DOMContentLoaded", async function () {
   let userRole = sessionStorage.getItem("userRole");
   let roleId = sessionStorage.getItem("roleId");
 
-  console.log("Current userRole:", userRole, "| roleId:", roleId);
-
   if (!userRole || !roleId) {
-    console.warn("No userRole found! Redirecting to login...");
+    console.warn("No userRole found!");
     userRole = "Admin";
     roleId = "1";
   }
 
   const menuTitle = document.getElementById("menuTitle");
-  if (menuTitle) {
-    menuTitle.textContent = `Menu ${userRole}`;
-  }
+  if (menuTitle) menuTitle.textContent = `Menu ${userRole}`;
 
   let allowedPermissions = [];
   try {
@@ -27,10 +23,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (data.success) {
       const res2 = await fetch(`/src/api/get_role_permissions.php?action=get_role_detail&role_id=${roleId}`);
       const data2 = await res2.json();
-
       if (data2.success) {
         allowedPermissions = data2.data.permissions.map(p => p.permission_name);
-        console.log("Allowed permissions:", allowedPermissions);
       }
     }
   } catch (e) {
@@ -39,26 +33,46 @@ document.addEventListener("DOMContentLoaded", async function () {
     return;
   }
 
-  const navItems = document.querySelectorAll(".nav-item");
-
-  navItems.forEach((item) => {
+  document.querySelectorAll(".nav-item").forEach((item) => {
     const dataPage = item.getAttribute("data-page");
-    const menuName = item.querySelector("span")?.textContent;
-
     if (!dataPage) return;
-
     if (allowedPermissions.includes(dataPage)) {
       item.style.display = "flex";
       item.style.visibility = "visible";
-      console.log("Shown:", menuName);
     } else {
       item.style.display = "none";
-      console.log("Hidden:", menuName);
     }
   });
 
   setActiveMenu();
+  loadUnreadBadge();
+  setInterval(loadUnreadBadge, 15000);
 });
+
+// ดึง unread count มาจาก API แล้วอัพเดตสถานะ
+async function loadUnreadBadge() {
+  try {
+    const res = await fetch('/src/api/getnotifications.php');
+    const result = await res.json();
+    if (result.success) {
+      updateNotificationBadge(result.unread_count);
+    }
+  } catch (e) {
+  }
+}
+
+// อัพเดตตัวเลขที่ sidebar
+function updateNotificationBadge(count) {
+  const notifItem = document.querySelector('.nav-item[data-page="notifications"]');
+  if (!notifItem) return;
+  notifItem.querySelector('.badge')?.remove();
+  if (count > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.textContent = count > 99 ? '99+' : count;
+    notifItem.appendChild(badge);
+  }
+}
 
 function useFallback(userRole) {
   console.warn("Using fallback data-roles mode");
@@ -71,8 +85,8 @@ function useFallback(userRole) {
     }
   });
   setActiveMenu();
+  loadUnreadBadge();
 }
-
 
 function setActiveMenu() {
   let currentPath = "";
@@ -92,7 +106,6 @@ function setActiveMenu() {
     item.classList.remove("active");
     const dataPage = item.getAttribute("data-page");
     if (dataPage && pageIdentifier === dataPage) {
-      console.log("Matched data-page:", dataPage);
       item.classList.add("active");
     }
   });
