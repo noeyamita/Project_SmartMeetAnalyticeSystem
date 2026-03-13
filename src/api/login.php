@@ -30,6 +30,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'message' => 'รหัสผ่านไม่ถูกต้อง']);
             exit;
         }
+        if (!empty($user['is_banned']) && $user['is_banned'] == 1) {
+        echo json_encode([
+            'success' => false,
+            'banned'  => true,
+            'message' => 'บัญชีของท่านถูกแบน กรุณาติดต่อแอดมิน'
+        ]);
+        exit;
+    }
 
         $_SESSION = [];
         session_destroy();

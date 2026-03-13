@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="css/login_out_forgot.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -30,12 +31,75 @@
         </form>
     </div>
 
+    <!-- Ban Popup Modal -->
+    <div id="banModal"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(5px); z-index:99999; align-items:center; justify-content:center;">
+        <div
+            style="background:#fff; border-radius:20px; padding:44px 36px 36px; max-width:400px; width:90%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.25); position:relative; overflow:hidden; animation:banPop 0.3s cubic-bezier(.34,1.56,.64,1);">
+            <!-- red top bar -->
+            <div
+                style="position:absolute; top:0; left:0; right:0; height:5px; background:linear-gradient(90deg,#ef4444,#dc2626);">
+            </div>
+
+            <!-- icon -->
+            <div
+                style="width:76px; height:76px; background:#fff1f2; border-radius:50%; border:2px solid #fecdd3; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:2rem; color:#dc2626;">
+                <i class="fas fa-ban"></i>
+            </div>
+
+            <h3
+                style="font-size:1.25rem; font-weight:800; color:#1e293b; margin-bottom:10px; font-family:'Segoe UI',sans-serif;">
+                บัญชีถูกระงับการใช้งาน</h3>
+            <p
+                style="font-size:14px; color:#64748b; line-height:1.65; margin-bottom:18px; font-family:'Segoe UI',sans-serif;">
+                บัญชีของท่านถูกแบน กรุณาติดต่อแอดมิน</p>
+
+            <div
+                style="background:#fefce8; border:1px solid #fde68a; border-radius:10px; padding:10px 16px; font-size:13px; color:#92400e; margin-bottom:24px; display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Segoe UI',sans-serif;">
+                <i class="fas fa-envelope"></i> ติดต่อผู้ดูแลระบบเพื่อขอปลดแบน
+            </div>
+
+            <button onclick="closeBanModal()"
+                style="width:100%; padding:13px; background:linear-gradient(135deg,#ef4444,#dc2626); color:white; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; font-family:'Segoe UI',sans-serif; box-shadow:0 4px 14px rgba(220,38,38,0.35); transition:all 0.2s;">
+                รับทราบ
+            </button>
+        </div>
+    </div>
+
+    <style>
+        @keyframes banPop {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+    </style>
+
     <script>
+        function showBanModal() {
+            const modal = document.getElementById('banModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBanModal() {
+            document.getElementById('banModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        document.getElementById('banModal').addEventListener('click', function (e) {
+            if (e.target === this) closeBanModal();
+        });
         document.getElementById('loginForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const formData = new FormData(this);
             const messageEl = document.getElementById('loginMessage');
+            messageEl.textContent = '';
 
             try {
                 const response = await fetch('src/api/login.php', {
@@ -45,15 +109,20 @@
 
                 const result = await response.json();
 
+                //ถ้าถูกแบน — แสดง popup แจ้งเตือน
+                if (result.banned === true) {
+                    showBanModal();
+                    return;
+                }
+
                 if (result.success) {
                     messageEl.style.color = 'green';
                     messageEl.textContent = result.message;
-                    
-                    // ✅ เก็บข้อมูล role และ user ลง sessionStorage
+
                     sessionStorage.setItem('userRole', result.role_name);
                     sessionStorage.setItem('userName', result.user_name);
                     sessionStorage.setItem('roleId', result.role_id);
-                    
+
                     setTimeout(() => {
                         window.location.href = '/BookingMeetingRoom.html';
                     }, 1000);

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการการแบนผู้ใช้</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/banned_users.css">
+</head>
+
+<body>
+    <iframe src="sidebar.html?page=profile" class="sidebar-frame"></iframe>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div class="header-icon"><i class="fas fa-shield-halved"></i></div>
+            <div class="header-text">
+                <h1>จัดการการแบนผู้ใช้</h1>
+                <p>แบนหรือปลดแบนผู้ใช้งานในระบบ</p>
+            </div>
+            <div class="header-stats" id="headerStats">
+                <div class="stat-pill banned"><i class="fas fa-ban"></i> <span id="statBanned">0</span> ถูกแบน</div>
+                <div class="stat-pill active"><i class="fas fa-circle-check"></i> <span id="statActive">0</span> ปกติ
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <div class="search-wrap">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="ค้นหาชื่อหรืออีเมล...">
+                <button class="clear-btn" id="clearBtn" onclick="clearSearch()" style="display:none">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+            <div class="filter-tabs">
+                <button class="tab-btn active" data-filter="all" onclick="setFilter('all', this)">
+                    <i class="fas fa-users"></i> ทั้งหมด
+                </button>
+                <button class="tab-btn" data-filter="banned" onclick="setFilter('banned', this)">
+                    <i class="fas fa-ban"></i> ถูกแบน
+                </button>
+                <button class="tab-btn" data-filter="active" onclick="setFilter('active', this)">
+                    <i class="fas fa-circle-check"></i> ปกติ
+                </button>
+            </div>
+        </div>
+
+        <!-- User Table -->
+        <div class="table-wrap">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>ผู้ใช้</th>
+                        <th>อีเมล</th>
+                        <th>Role</th>
+                        <th>สถานะ</th>
+                        <th>จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <tr>
+                        <td colspan="5" class="loading-row">
+                            <i class="fas fa-spinner fa-spin"></i> กำลังโหลด...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="result-count" id="resultCount"></div>
+    </main>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="confirmModal">
+            <div class="modal-icon" id="modalIcon"></div>
+            <h3 id="modalTitle"></h3>
+            <p id="modalDesc"></p>
+            <div class="modal-reason" id="modalReasonWrap">
+                <label>เหตุผล (ถ้ามี)</label>
+                <textarea id="banReason" placeholder="เช่น ละเมิดกฎการใช้งาน, สแปม..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closeModal()">ยกเลิก</button>
+                <button class="modal-btn confirm" id="modalConfirmBtn" onclick="confirmAction()"></button>
+            </div>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script src="js/banned_users.js"></script>
+</body>
+
+</html>
