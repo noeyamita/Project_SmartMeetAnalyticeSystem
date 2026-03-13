@@ -7,9 +7,13 @@ document.addEventListener("DOMContentLoaded", async function () {
   let roleId = sessionStorage.getItem("roleId");
 
   if (!userRole || !roleId) {
-    console.warn("No userRole found!");
-    userRole = "Admin";
-    roleId = "1";
+    console.warn("No session found! Redirecting to login...");
+    try {
+      window.top.location.href = '/login.html';
+    } catch (e) {
+      window.location.href = '/login.html';
+    }
+    return;
   }
 
   const menuTitle = document.getElementById("menuTitle");
@@ -49,7 +53,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   setInterval(loadUnreadBadge, 15000);
 });
 
-// ดึง unread count มาจาก API แล้วอัพเดตสถานะ
 async function loadUnreadBadge() {
   try {
     const res = await fetch('/src/api/getnotifications.php');
@@ -57,15 +60,15 @@ async function loadUnreadBadge() {
     if (result.success) {
       updateNotificationBadge(result.unread_count);
     }
-  } catch (e) {
-  }
+  } catch (e) { }
 }
 
-// อัพเดตตัวเลขที่ sidebar
 function updateNotificationBadge(count) {
   const notifItem = document.querySelector('.nav-item[data-page="notifications"]');
   if (!notifItem) return;
+
   notifItem.querySelector('.badge')?.remove();
+
   if (count > 0) {
     const badge = document.createElement('span');
     badge.className = 'badge';

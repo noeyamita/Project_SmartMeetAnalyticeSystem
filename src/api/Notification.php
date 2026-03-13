@@ -51,13 +51,13 @@ class NotificationHelper {
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
-            $mail->Username   = NOTI_GMAIL_USER;
-            $mail->Password   = NOTI_GMAIL_PASS;
+            $mail->Username   = GMAIL_USER;
+            $mail->Password   = GMAIL_PASS;
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
             $mail->CharSet    = 'UTF-8';
 
-            $mail->setFrom(NOTI_GMAIL_USER, NOTI_MAIL_NAME);
+            $mail->setFrom(GMAIL_USER, NOTI_MAIL_NAME);
             $mail->addAddress($to);
             $mail->isHTML(true);
             $mail->Subject = $subject;

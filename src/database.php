@@ -9,9 +9,9 @@ class Database {
     
     public function __construct() {
         // ดึงค่าจาก Environment Variables
-        $this->host = getenv('DB_HOST') ?: 'mysql-database';
+        $this->host = getenv('DB_HOST') ?: 'mysql';
         $this->user = getenv('DB_USER') ?: 'root';
-        $this->pass = getenv('DB_PASSWORD') ?: 'MySecureRootPass';
+        $this->pass = getenv('DB_PASSWORD') ?: '1234';
         $this->db   = getenv('DB_NAME') ?: 'db_amita';
     }
     public function getConnection() {

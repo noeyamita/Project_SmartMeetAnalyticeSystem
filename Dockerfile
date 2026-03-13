@@ -1,8 +1,7 @@
 FROM php:8.1-apache
 
 # Enable apache modules
-RUN a2enmod rewrite
-RUN a2enmod dir
+RUN a2enmod rewrite dir
 
 # Install system dependencies + PHP extensions
 RUN apt-get update && apt-get install -y \
@@ -11,19 +10,34 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     curl \
+    cron \
     && docker-php-ext-install mysqli pdo pdo_mysql \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
+# ตั้ง timezone
+RUN ln -sf /usr/share/zoneinfo/Asia/Bangkok /etc/localtime \
+    && echo "Asia/Bangkok" > /etc/timezone
+
+# Install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working dir
 WORKDIR /var/www/html
 
-# Install PHPMailer via Composer
+# Install PHPMailer
 RUN composer require phpmailer/phpmailer --no-interaction --no-progress
 
-# Ensure file ownership to www-data
+# Cron job (ทุก 1 นาทีตอนทดสอบ)
+RUN echo " * * * * * /usr/local/bin/php /var/www/html/src/api/send_reminders.php >> /var/log/reminders.log 2>&1" > /etc/cron.d/send_reminders \
+    && chmod 0644 /etc/cron.d/send_reminders \
+    && crontab /etc/cron.d/send_reminders
+
+# copy entrypoint
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# fix permission
 RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
+
+CMD ["/docker-entrypoint.sh"]

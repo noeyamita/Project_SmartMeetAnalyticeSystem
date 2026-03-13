@@ -1,7 +1,10 @@
 const API = '../src/api/';
 let allNotifications = [];
 
-document.addEventListener('DOMContentLoaded', loadNotifications);
+document.addEventListener('DOMContentLoaded', () => {
+    loadNotifications();
+    setInterval(loadNotifications, 10000); // refresh ทุก 10 วิ
+});
 
 // โหลด Notifications จาก API
 async function loadNotifications() {
@@ -71,9 +74,8 @@ async function markRead(id, el) {
     const n = allNotifications.find(n => n.notification_id == id);
     if (n) n.is_read = 1;
 
-    updateUnreadCount(allNotifications.filter(n => n.is_read == 0).length);
+    const newCount = allNotifications.filter(n => n.is_read == 0).length;
     updateUnreadCount(newCount);
-    //sidebar iframe อัพเดตสถานะทันที
     notifySidebarBadge(newCount);
 }
 

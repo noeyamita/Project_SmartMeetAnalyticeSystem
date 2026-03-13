@@ -20,6 +20,7 @@ services:
       DB_USER: root
       DB_PASSWORD: 1234
       DB_NAME: db_amita
+      TZ: Asia/Bangkok
 
   mysql:
     image: mysql:8.0
