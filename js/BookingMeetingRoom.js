@@ -51,6 +51,14 @@ function isBookingAtLeast3HoursInAdvance(date, time) {
     return diffHours >= 3;
 }
 
+function isTimeInRange(userStart, userEnd, roomStart, roomEnd) {
+    const uStart = userStart.replace(":", "");
+    const uEnd = userEnd.replace(":", "");
+    const rStart = roomStart.replace(":", "");
+    const rEnd = roomEnd.replace(":", "");
+    return uStart >= rStart && uEnd <= rEnd;
+}
+
 function showAlert(message, type = 'error', duration = 4000) {
     const alertBox = document.getElementById('alertBox');
     alertBox.textContent = message;
@@ -70,28 +78,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchEquipments() {
     try {
-        const response = await fetch('../src/api/getEquipments.php');
+        const response = await fetch('src/api/getEquipments.php');
         const result = await response.json();
+
         const box = document.getElementById('equipmentOptions');
         box.innerHTML = '';
 
         if (result.status === 'success') {
             result.data.forEach(e => {
                 box.innerHTML += `
-                <label>
-                    <input type="checkbox" name="equipment_id" value="${e.equipment_id}">
-                    ${e.equipment_name}
-                </label>`;
+                <div class="equipment-item">
+                    <label>
+                        <input type="checkbox" name="equipment_id" value="${e.equipment_id}">
+                        ${e.equipment_name}
+                    </label>
+                </div>`;
             });
         }
-    } catch {
+    } catch (err) {
+        console.error(err);
         showAlert('โหลดอุปกรณ์ไม่สำเร็จ');
     }
 }
 
 async function fetchTableLayouts() {
     try {
-        const response = await fetch('../src/api/getTableLayouts.php');
+        const response = await fetch('src/api/getTableLayouts.php');
         const result = await response.json();
         const box = document.getElementById('tableLayoutOptions');
         box.innerHTML = '';
@@ -99,10 +111,13 @@ async function fetchTableLayouts() {
         if (result.status === 'success') {
             result.data.forEach((l, i) => {
                 box.innerHTML += `
-                <label>
-                    <input type="radio" name="table_layout_id" value="${l.tablelayout_id}" ${i === 0 ? 'checked' : ''}>
-                    ${l.tablelayout_name}
-                </label>`;
+                <div class="layout-item">
+                    <label>
+                        <input type="radio" name="table_layout_id" value="${l.tablelayout_id}" id="layout_${l.tablelayout_id}" ${i === 0 ? 'checked' : ''}>
+                    <label for="layout_${l.tablelayout_id}">
+                        ${l.tablelayout_name}
+                    </label>
+                </div>`;
             });
         }
     } catch {
@@ -192,13 +207,12 @@ async function confirmBooking() {
             body: JSON.stringify(bookingData)
         });
 
-        const text = await response.text(); // อ่านเป็น text ก่อน
+        const text = await response.text();
 
         let result;
         try {
             result = JSON.parse(text);
         } catch {
-            // PHP ส่ง HTML error กลับมา แสดงใน console แล้ว alert แจ้ง user
             console.error('Server response (not JSON):', text);
             showAlert('เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง');
             return;
@@ -220,13 +234,35 @@ async function confirmBooking() {
 
 function renderRooms(rooms) {
     const roomsGrid = document.getElementById('roomsGrid');
+    const userStart = document.getElementById("start_time").value;
+    const userEnd = document.getElementById("end_time").value;
+    const warning = document.getElementById("timeWarning");
+
+    let hasAvailableRoom = false;
+
+    // reset UI
+    if (warning) warning.style.display = "none";
     roomsGrid.innerHTML = '';
+
+    // ❗ ไม่มีข้อมูลเลย
     if (!rooms || rooms.length === 0) {
-        roomsGrid.innerHTML = '<div class="empty-state">ไม่พบห้องประชุมในช่วงเวลาที่กำหนด</div>';
+        roomsGrid.innerHTML = `
+            <div class="empty-state">
+                ❌ ไม่พบห้องประชุม
+            </div>
+        `;
+        if (warning) warning.style.display = "block";
         return;
     }
+
     rooms.forEach(room => {
-        const card = document.createElement('div');
+        const roomStart = room.open_time;
+        const roomEnd = room.close_time;
+        if (!isTimeInRange(userStart, userEnd, roomStart, roomEnd)) {
+            return;
+        }
+
+        hasAvailableRoom = true;
         const status = room.availability_status || 'unknown';
         const statusText = room.availability_text || 'ไม่ทราบสถานะ';
 
@@ -235,24 +271,22 @@ function renderRooms(rooms) {
         if (status === 'available') {
             chipClass = 'available';
             statusClass = 'available';
-        } else if (status === 'booked') {
-            chipClass = 'booked';
-            statusClass = 'unavailable';
-        } else if (status === 'closed') {
-            chipClass = 'closed';
+        } else if (status === 'booked' || status === 'closed') {
+            chipClass = status;
             statusClass = 'unavailable';
         } else {
             chipClass = 'unknown';
             statusClass = 'unavailable';
         }
-
         const isAvailable = status === 'available';
+        const card = document.createElement('div');
         card.className = `room-card ${statusClass}`;
         card.setAttribute('data-room-id', room.room_id);
 
         const imageUrl = room.image_url && room.image_url.trim() !== ''
             ? room.image_url
             : 'uploads/rooms/default_room.jpg';
+
         const operatingHours = `${room.open_time || '00:00'} - ${room.close_time || '23:59'}`;
         const roomLocation = `${room.floor_number || '-'} | ขนาด ${room.room_size || 'N/A'}`;
 
@@ -261,13 +295,17 @@ function renderRooms(rooms) {
             <div class="room-details">
                 <div class="room-title">${room.room_name}</div>
                 <div class="operating-hours">${operatingHours}</div>
-                <div class="room-cap">ความจุ ${room.capacity} คน<br>${roomLocation}</div>
+                <div class="room-cap">
+                    ความจุ ${room.capacity} คน<br>${roomLocation}
+                </div>
                 <div class="room-status">
                     <div class="status-badge">
                         <span class="chip ${chipClass}"></span>
                         ${statusText}
                     </div>
-                    <button class="btn primary" onclick="openBookingModal(${room.room_id})" ${isAvailable ? '' : 'disabled'}>
+                    <button class="btn primary"
+                        onclick="openBookingModal(${room.room_id})"
+                        ${isAvailable ? '' : 'disabled'}>
                         เลือกห้อง
                     </button>
                 </div>
@@ -275,6 +313,17 @@ function renderRooms(rooms) {
         `;
         roomsGrid.appendChild(card);
     });
+
+    if (!hasAvailableRoom) {
+        if (warning) warning.style.display = "block";
+
+        roomsGrid.innerHTML = `
+            <div class="empty-state">
+                ไม่มีห้องในช่วงเวลานี้<br>
+                กรุณาเลือกเวลาใหม่
+            </div>
+        `;
+    }
 }
 
 function openBookingModal(roomId) {
