@@ -77,11 +77,21 @@ function showAlert(message, type = 'error', duration = 4000) {
 document.addEventListener('DOMContentLoaded', () => {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('date').value = today;
+    const qStart = sessionStorage.getItem('quickBook_start');
+    const qEnd = sessionStorage.getItem('quickBook_end');
+
+    if (qStart && qEnd) {
+        document.getElementById('start_time').value = qStart;
+        document.getElementById('end_time').value = qEnd;
+
+        sessionStorage.removeItem('quickBook_start');
+        sessionStorage.removeItem('quickBook_end');
+        setTimeout(() => searchRooms(), 500);
+    }
 
     fetchEquipments();
     fetchTableLayouts();
 });
-
 async function fetchEquipments() {
     try {
         const response = await fetch('src/api/getEquipments.php');

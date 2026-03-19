@@ -2,8 +2,9 @@
 session_start();
 require_once __DIR__ . '/../config/config.php';
 header("Content-Type: application/json");
+date_default_timezone_set('Asia/Bangkok');
 
-// ตรวจสอบการล็อกอิน
+
 if (!isset($_SESSION['user_id'])) {
     echo json_encode([
         "status" => "error",
@@ -12,17 +13,6 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// ฟังก์ชันแปลง Decimal -> HH:MM
-function decimalToTime($decimal) {
-    if ($decimal === null) return null;
-    
-    $hours = floor($decimal);
-    $minutes = round(($decimal - $hours) * 100);
-    
-    return sprintf("%02d:%02d", $hours, $minutes);
-}
-
-// ฟังก์ชันแปลงวันที่เป็นภาษาไทย
 function formatThaiDate($date, $currentDate) {
     $bookingDate = new DateTime($date);
     $today = new DateTime($currentDate);
@@ -41,11 +31,8 @@ function formatThaiDate($date, $currentDate) {
 try {
     $userId = $_SESSION['user_id'];
     $currentDate = date('Y-m-d');
-    $currentHour = intval(date('H'));
-    $currentMinute = intval(date('i'));
-    $currentTime = $currentHour + ($currentMinute / 100);
+    $currentTime = date('H:i:s'); 
 
-    // Query - ดึงการจองที่กำลังจะมาถึง (ยังไม่เริ่ม)
     $query = "
         SELECT 
             b.booking_id,
@@ -68,18 +55,16 @@ try {
     ";
 
     $stmt = $pdo->prepare($query);
-    $stmt->execute([$userId, $currentDate, $currentDate, $currentTime]);
+    $stmt->execute([$userId, $currentDate, $currentDate, $currentTime]); 
     $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // แปลงข้อมูล
     $result = [];
     foreach ($bookings as $booking) {
         $result[] = [
             'booking_id' => $booking['booking_id'],
             'booking_date' => $booking['booking_date'],
             'booking_date_thai' => formatThaiDate($booking['booking_date'], $currentDate),
-            'start_time' => decimalToTime($booking['start_time']),
-            'end_time' => decimalToTime($booking['end_time']),
+            'start_time' => date('H:i', strtotime($booking['start_time'])), 
+            'end_time' => date('H:i', strtotime($booking['end_time'])),
             'room_name' => $booking['room_name'],
             'purpose' => $booking['purpose']
         ];

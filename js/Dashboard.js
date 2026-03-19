@@ -70,28 +70,43 @@ async function loadUserDashboard() {
     ]);
 }
 
+// อัปเดตฟังก์ชันนี้ใน Dashboard.js
 async function loadRoomStatus() {
     try {
-        const response = await fetch(`${API_BASE}getRoomStatus.php`);
+        const response = await fetch(`${API_BASE}getQuickBookRooms.php`);
         const result = await response.json();
         const container = document.getElementById('roomsStatusGrid');
+        const cardHeader = container.parentElement.querySelector('.card-header h2');
+        if (cardHeader) {
+            cardHeader.innerHTML = 'จองห้องประชุมในรายการโปรด';
+        }
 
         if (result.status === 'success' && result.data.length > 0) {
             container.innerHTML = result.data.map(room => {
-                const statusClass = room.status === 'available' ? 'available' : room.status === 'occupied' ? 'occupied' : 'reserved';
-                const statusText = room.status === 'available' ? 'ว่าง' : room.status === 'occupied' ? 'กำลังใช้งาน' : 'จองแล้ว';
+                const isAvailable = room.status === 'available';
+                const statusClass = isAvailable ? 'available' : 'occupied';
+                const statusText = isAvailable ? 'ว่างพร้อมจอง' : 'ไม่ว่าง';
 
                 return `
-                    <div class="room-status-card">
+                    <div class="room-status-card ${statusClass}">
                         <div class="room-status-header">
                             <div class="status-indicator ${statusClass}"></div>
                             <div class="room-status-name">${room.room_name}</div>
                         </div>
-                        <div class="room-status-info">
-                            ความจุ: ${room.capacity} คน<br>
-                            ชั้น: ${room.floor_number || '-'}
+                        <div class="room-status-info" style="margin-bottom: 12px; font-weight: 500;">
+                            🕒 เช็คเวลา: ${room.start_time} - ${room.end_time}
                         </div>
-                        <span class="room-status-label ${statusClass}">${statusText}</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="room-status-label ${statusClass}">${statusText}</span>
+                            
+                            ${isAvailable ? `
+                                <button class="btn primary" 
+                                    style="padding: 6px 12px; font-size: 13px;" 
+                                    onclick="quickBookRoom('${room.room_id}', '${room.start_time}', '${room.end_time}')">
+                                    จองทันที
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -101,6 +116,12 @@ async function loadRoomStatus() {
     } catch (error) {
         document.getElementById('roomsStatusGrid').innerHTML = '<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
     }
+}
+
+function quickBookRoom(roomId, startTime, endTime) {
+    sessionStorage.setItem('quickBook_start', startTime);
+    sessionStorage.setItem('quickBook_end', endTime);
+    window.location.href = 'BookingMeetingRoom.html';
 }
 
 async function loadUserStats() {
@@ -211,7 +232,6 @@ async function loadPeakTimes() {
         const container = document.getElementById('peakTimesList');
 
         if (result.status === 'success' && result.data.length > 0) {
-            // เพิ่ม (time, index) เพื่อดึงลำดับมาใช้งาน
             container.innerHTML = result.data.map((time, index) => `
                 <div class="peak-time-item">
                     <div class="room-rank">${index + 1}</div>
@@ -326,7 +346,7 @@ function renderDonutChart(completed, cancelled) {
         data: {
             labels: ['เสร็จสมบูรณ์', 'ยกเลิก'],
             datasets: [{
-                data: hasData ? [completed, cancelled] : [1, 0], // ถ้าไม่มีข้อมูลใส่ dummy ไปโชว์กรอบ
+                data: hasData ? [completed, cancelled] : [1, 0],
                 backgroundColor: hasData ? ['#10b981', '#ef4444'] : ['#e1e8ed', '#e1e8ed'],
                 borderWidth: 0,
                 hoverOffset: 4
