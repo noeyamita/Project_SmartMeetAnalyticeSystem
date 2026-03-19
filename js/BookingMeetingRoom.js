@@ -63,6 +63,12 @@ function showAlert(message, type = 'error', duration = 4000) {
     const alertBox = document.getElementById('alertBox');
     alertBox.textContent = message;
     alertBox.className = `alert ${type} active`;
+    alertBox.style.position = 'fixed';
+    alertBox.style.top = '20px';
+    alertBox.style.transform = 'translateX(-50%)';
+    alertBox.style.zIndex = '9999';
+    alertBox.style.minWidth = '300px';
+    alertBox.style.textAlign = 'center';
     setTimeout(() => {
         alertBox.className = 'alert';
     }, duration);
@@ -172,6 +178,29 @@ async function searchRooms() {
     availableRooms = result.data || [];
     renderRooms(availableRooms);
 }
+
+function resetSearch() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const formattedToday = `${yyyy}-${mm}-${dd}`;
+    document.getElementById('date').value = formattedToday;
+    document.getElementById('start_time').value = '';
+    document.getElementById('end_time').value = '';
+    document.getElementById('capacity').value = '';
+    availableRooms = [];
+    selectedRoom = null;
+
+    if (typeof renderRooms === "function") {
+        renderRooms(availableRooms);
+    }
+    const inputs = document.querySelectorAll('input[name="equipment_id"], input[name="table_layout_id"]');
+    inputs.forEach(input => input.checked = false);
+
+    console.log("ล้างข้อมูลการค้นหาเรียบร้อยแล้ว");
+}
+
 
 
 async function confirmBooking() {

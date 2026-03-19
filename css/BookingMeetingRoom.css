@@ -300,17 +300,6 @@ select:focus {
     animation: pulse 2s infinite;
 }
 
-@keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.6;
-    }
-}
 
 .chip.available {
     background: #27ae60;
@@ -394,18 +383,6 @@ select:focus {
     animation: modalSlideIn 0.3s ease;
 }
 
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 .modal-header {
     margin-bottom: 20px;
 }
@@ -460,24 +437,24 @@ textarea:focus {
 
 /* Alert Messages */
 .alert {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    min-width: 320px;
+    text-align: center;
     padding: 15px 20px;
     border-radius: 8px;
-    margin-bottom: 20px;
-    display: none;
     font-weight: 500;
-    animation: slideDown 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    visibility: hidden;
 }
 
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.alert.active {
+    top: 30px;
+    opacity: 1;
+    visibility: visible;
 }
 
 .alert.success {
@@ -498,47 +475,6 @@ textarea:focus {
     border: 1px solid #ffeaa7;
 }
 
-.alert.active {
-    display: block;
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-    .rooms-grid {
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    }
-}
-
-@media (max-width: 768px) {
-    .sidebar-frame {
-        width: 0;
-        display: none;
-    }
-
-    .main-content {
-        margin-left: 0;
-        width: 100%;
-        padding: 20px;
-    }
-
-    .rooms-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .row {
-        grid-template-columns: 1fr;
-    }
-
-    .room-image {
-        height: 160px;
-    }
-
-    .modal-content {
-        padding: 20px;
-        width: 95%;
-    }
-}
-
 /* Loading State */
 .loading {
     text-align: center;
@@ -552,16 +488,6 @@ textarea:focus {
     display: block;
     margin-top: 16px;
     animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
 }
 
 /* Checkbox & Radio */
@@ -622,14 +548,9 @@ input[type="radio"] {
     background: #95a5a6;
 }
 
-/* ================================
-   สถานะห้อง 3 แบบ
-   ================================ */
-
 /* 1. ห้องว่าง (Available) */
 .chip.available {
     background-color: #10b981;
-    /* เขียว */
     width: 12px;
     height: 12px;
     border-radius: 50%;
@@ -651,7 +572,6 @@ input[type="radio"] {
 /* 2. ห้องถูกจอง (Booked) */
 .chip.booked {
     background-color: #ef4444;
-    /* แดง */
     width: 12px;
     height: 12px;
     border-radius: 50%;
@@ -680,7 +600,6 @@ input[type="radio"] {
 /* 3. ห้องปิดปรับปรุง (Closed) */
 .chip.closed {
     background-color: #f59e0b;
-    /* ส้ม */
     width: 12px;
     height: 12px;
     border-radius: 50%;
@@ -710,9 +629,6 @@ input[type="radio"] {
     box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
 }
 
-/* ================================
-   Status Badge
-   ================================ */
 .status-badge {
     display: flex;
     align-items: center;
@@ -724,21 +640,6 @@ input[type="radio"] {
     animation: pulse 2s infinite;
 }
 
-@keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.5;
-    }
-}
-
-/* ================================
-   Room Card Base Styles
-   ================================ */
 .room-card {
     border-radius: 12px;
     overflow: hidden;
@@ -799,9 +700,6 @@ input[type="radio"] {
     border-top: 1px solid #e5e7eb;
 }
 
-/* ================================
-   Button Styles
-   ================================ */
 .btn.primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -824,9 +722,6 @@ input[type="radio"] {
     opacity: 0.5;
 }
 
-/* ================================
-   Loading & Empty States
-   ================================ */
 .loading {
     text-align: center;
     padding: 40px;
