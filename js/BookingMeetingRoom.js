@@ -216,7 +216,10 @@ async function confirmBooking() {
         showAlert('วันที่เลือกเกินสิทธิ์การจองของคุณ', 'warning');
         return;
     }
-
+    const confirmBtn = document.querySelector('.modal-footer .btn.primary');
+    const originalText = confirmBtn.textContent;
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'กำลังดำเนินการ...';
     const bookingData = {
         room_id: selectedRoom.room_id,
         booking_date: date,
@@ -257,6 +260,9 @@ async function confirmBooking() {
     } catch (err) {
         console.error('Fetch error:', err);
         showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง');
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = originalText;
     }
 }
 
@@ -272,8 +278,6 @@ function renderRooms(rooms) {
     // reset UI
     if (warning) warning.style.display = "none";
     roomsGrid.innerHTML = '';
-
-    // ❗ ไม่มีข้อมูลเลย
     if (!rooms || rooms.length === 0) {
         roomsGrid.innerHTML = `
             <div class="empty-state">

@@ -13,160 +13,157 @@
 
     <main class="main-content">
         <div class="container">
-            <header>
-                <h1>Dashboard</h1>
-                <p class="muted">ภาพรวมการใช้งานระบบจองห้องประชุม</p>
+            <header class="page-header">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p class="muted">ภาพรวมการใช้งานระบบจองห้องประชุม</p>
+                </div>
+                <div class="tabs-container">
+                    <button class="tab-btn active" onclick="switchTab('user')" id="userTabBtn">Dashboard ผู้จอง</button>
+                    <button class="tab-btn" onclick="switchTab('admin')" id="adminTabBtn">Dashboard Admin</button>
+                </div>
             </header>
 
             <div id="alertBox" class="alert"></div>
 
-            <!-- Tab Navigation -->
-            <div class="tabs-container">
-                <button class="tab-btn active" onclick="switchTab('user')" id="userTabBtn">
-                    📊 Dashboard ผู้จอง
-                </button>
-                <button class="tab-btn" onclick="switchTab('admin')" id="adminTabBtn">
-                    👨‍💼 Dashboard Admin
-                </button>
-            </div>
-
-            <!-- User Dashboard -->
             <div id="userTab" class="tab-content active">
-                <!-- Real-time Room Status -->
-                <section class="card">
-                    <div class="card-header">
-                        <h2>🟢 สถานะห้องประชุม Real-time</h2>
-                        <span class="real-time-badge">
-                            <span class="pulse-dot"></span>
-                            อัพเดทแบบ Real-time
-                        </span>
-                    </div>
-                    <div class="rooms-status-grid" id="roomsStatusGrid">
-                        <div class="loading">กำลังโหลดข้อมูล...</div>
-                    </div>
-                </section>
 
-                <!-- User Stats & Upcoming Bookings -->
-                <div class="grid-2">
-                    <section class="card">
-                        <h2>📈 สถิติของคุณในปีนี้</h2>
-                        <div class="stats-grid">
-                            <div class="stat-box">
-                                <div class="stat-icon">📋</div>
-                                <div class="stat-details">
-                                    <div class="stat-number" id="userTotalBookings">-</div>
-                                    <div class="stat-label">ครั้งที่จองทั้งหมด</div>
-                                </div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-icon">✅</div>
-                                <div class="stat-details">
-                                    <div class="stat-number" id="userCompletedBookings">-</div>
-                                    <div class="stat-label">เสร็จสมบูรณ์</div>
-                                </div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-icon">❌</div>
-                                <div class="stat-details">
-                                    <div class="stat-number" id="userCancelledBookings">-</div>
-                                    <div class="stat-label">ยกเลิก</div>
-                                </div>
-                            </div>
+                <div class="overview-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-title">จองทั้งหมด (ปีนี้)</span>
+                            <h3 class="stat-value" id="userTotalBookings">-</h3>
                         </div>
-                    </section>
-
-                    <section class="card">
-                        <h2>📅 การจองที่กำลังจะมาถึง</h2>
-                        <div class="upcoming-bookings-list" id="upcomingBookingsList">
-                            <div class="loading">กำลังโหลดข้อมูล...</div>
+                        <div class="stat-icon-wrapper"><span class="stat-icon">📋</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-title">เสร็จสมบูรณ์</span>
+                            <h3 class="stat-value" id="userCompletedBookings">-</h3>
                         </div>
-                    </section>
+                        <div class="stat-icon-wrapper success"><span class="stat-icon">✅</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-title">ยกเลิกการจอง</span>
+                            <h3 class="stat-value" id="userCancelledBookings">-</h3>
+                        </div>
+                        <div class="stat-icon-wrapper danger"><span class="stat-icon">❌</span></div>
+                    </div>
                 </div>
 
-                <!-- Popular Rooms for User -->
-                <section class="card">
-                    <h2>⭐ ห้องที่คุณจองบ่อยที่สุด</h2>
-                    <div class="popular-rooms-list" id="userPopularRoomsList">
-                        <div class="loading">กำลังโหลดข้อมูล...</div>
+                <div class="content-split-grid">
+                    <div class="left-col">
+                        <section class="card">
+                            <div class="card-header">
+                                <h2>📅 การจองที่กำลังจะมาถึง</h2>
+                            </div>
+                            <div class="upcoming-bookings-list" id="upcomingBookingsList">
+                                <div class="loading">กำลังโหลดข้อมูล...</div>
+                            </div>
+                        </section>
+
+                        <section class="card">
+                            <div class="card-header">
+                                <h2>⭐ ห้องที่คุณจองบ่อยที่สุด</h2>
+                            </div>
+                            <div class="popular-rooms-list" id="userPopularRoomsList">
+                                <div class="loading">กำลังโหลดข้อมูล...</div>
+                            </div>
+                        </section>
                     </div>
-                </section>
+
+                    <div class="right-col">
+                        <section class="card full-height">
+                            <div class="card-header flex-between">
+                                <h2>🟢 สถานะห้องประชุม Real-time</h2>
+                                <span class="real-time-badge"><span class="pulse-dot"></span>อัพเดทตลอดเวลา</span>
+                            </div>
+                            <div class="rooms-status-grid" id="roomsStatusGrid">
+                                <div class="loading">กำลังโหลดข้อมูล...</div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
             </div>
 
-            <!-- Admin Dashboard -->
             <div id="adminTab" class="tab-content">
-                <!-- Admin Stats Overview -->
-                <div class="grid-3">
-                    <section class="card stat-card">
-                        <div class="stat-card-icon">📅</div>
-                        <div class="stat-card-content">
-                            <div class="stat-card-number" id="todayBookings">-</div>
-                            <div class="stat-card-label">การจองวันนี้</div>
-                        </div>
-                    </section>
 
-                    <section class="card stat-card">
-                        <div class="stat-card-icon">📆</div>
-                        <div class="stat-card-content">
-                            <div class="stat-card-number" id="weekBookings">-</div>
-                            <div class="stat-card-label">การจองสัปดาห์นี้</div>
+                <div class="overview-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-title">การจองวันนี้</span>
+                            <h3 class="stat-value" id="todayBookings">-</h3>
                         </div>
-                    </section>
-
-                    <section class="card stat-card">
-                        <div class="stat-card-icon">📊</div>
-                        <div class="stat-card-content">
-                            <div class="stat-card-number" id="monthBookings">-</div>
-                            <div class="stat-card-label">การจองเดือนนี้</div>
+                        <div class="stat-icon-wrapper"><span class="stat-icon">📅</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-title">การจองสัปดาห์นี้</span>
+                            <h3 class="stat-value" id="weekBookings">-</h3>
                         </div>
-                    </section>
+                        <div class="stat-icon-wrapper"><span class="stat-icon">📆</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-title">การจองเดือนนี้</span>
+                            <h3 class="stat-value" id="monthBookings">-</h3>
+                        </div>
+                        <div class="stat-icon-wrapper"><span class="stat-icon">📊</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <span class="stat-title">ยกเลิก/ย้ายห้อง (เดือนนี้)</span>
+                            <h3 class="stat-value"><span id="cancelledBookings">-</span> / <span id="roomChanges"
+                                    style="font-size: 18px; color:#7f8c8d;">-</span></h3>
+                        </div>
+                        <div class="stat-icon-wrapper warning"><span class="stat-icon">🔄</span></div>
+                    </div>
                 </div>
 
-                <!-- Admin Operations Stats -->
-                <div class="grid-2">
-                    <section class="card">
-                        <h2>🔄 สถิติการดำเนินการ</h2>
-                        <div class="stats-grid">
-                            <div class="stat-box">
-                                <div class="stat-icon">🚫</div>
-                                <div class="stat-details">
-                                    <div class="stat-number" id="cancelledBookings">-</div>
-                                    <div class="stat-label">การยกเลิกเดือนนี้</div>
-                                </div>
+                <div class="content-split-grid">
+                    <div class="left-col">
+                        <section class="card">
+                            <div class="card-header">
+                                <h2>🏆 ห้องยอดนิยม</h2>
                             </div>
-                            <div class="stat-box">
-                                <div class="stat-icon">🔀</div>
-                                <div class="stat-details">
-                                    <div class="stat-number" id="roomChanges">-</div>
-                                    <div class="stat-label">การย้ายห้อง</div>
-                                </div>
+                            <div class="popular-rooms-list" id="adminPopularRoomsList">
+                                <div class="loading">กำลังโหลดข้อมูล...</div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
 
-                    <section class="card">
-                        <h2>⏰ เวลาที่มีการจองมากที่สุด</h2>
-                        <div class="peak-times-list" id="peakTimesList">
-                            <div class="loading">กำลังโหลดข้อมูล...</div>
-                        </div>
-                    </section>
+                        <section class="card">
+                            <div class="card-header">
+                                <h2>⏰ เวลาที่จองเยอะสุด</h2>
+                            </div>
+                            <div class="peak-times-list" id="peakTimesList">
+                                <div class="loading">กำลังโหลดข้อมูล...</div>
+                            </div>
+                        </section>
+
+                        <section class="card">
+                            <div class="card-header">
+                                <h2>สัดส่วนสถานะการจอง (เดือนนี้)</h2>
+                            </div>
+                            <div class="chart-container-donut">
+                                <canvas id="statusDonutChart"></canvas>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="right-col">
+                        <section class="card full-height">
+                            <div class="card-header flex-between">
+                                <h2>📈 กราฟการจองห้องประชุมในเดือนนี้</h2>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="monthlyChart"></canvas>
+                            </div>
+                        </section>
+                    </div>
                 </div>
-
-                <!-- Monthly Booking Chart -->
-                <section class="card">
-                    <h2>📈 กราฟการจองห้องประชุมในเดือนนี้</h2>
-                    <div class="chart-container">
-                        <canvas id="monthlyChart"></canvas>
-                    </div>
-                </section>
-
-                <!-- Popular Rooms for Admin -->
-                <section class="card">
-                    <h2>🏆 ห้องที่ได้รับความนิยมสูงสุด</h2>
-                    <div class="popular-rooms-list" id="adminPopularRoomsList">
-                        <div class="loading">กำลังโหลดข้อมูล...</div>
-                    </div>
-                </section>
             </div>
+
         </div>
     </main>
 

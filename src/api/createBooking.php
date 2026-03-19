@@ -14,15 +14,12 @@ function canBookByRole($role, $bookingDate) {
     switch ($role) {
         case 'admin':
             return true;
-
         case 'executive':
             $limit = (clone $today)->modify('+1 month');
             return $booking <= $limit;
-
         case 'normal':
             $limit = (clone $today)->modify('+14 days');
             return $booking <= $limit;
-
         default:
             return false;
     }
@@ -46,10 +43,7 @@ $bookingDate = $input['booking_date'] ?? null;
 $role = strtolower($_SESSION['role_name'] ?? 'normal');
 
 if (!$bookingDate) {
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'ไม่พบวันที่จอง'
-    ]);
+    echo json_encode(['status' => 'error', 'message' => 'ไม่พบวันที่จอง']);
     exit;
 }
 
@@ -66,10 +60,7 @@ if (!canBookByRole($role, $bookingDate)) {
 }
 
 if (!isset($_SESSION['user_id'])) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "กรุณาเข้าสู่ระบบก่อนทำการจอง"
-    ]);
+    echo json_encode(["status" => "error", "message" => "กรุณาเข้าสู่ระบบก่อนทำการจอง"]);
     exit;
 }
 
@@ -77,10 +68,7 @@ try {
     $required_fields = ['room_id', 'booking_date', 'start_time', 'end_time', 'capacity', 'purpose', 'table_layout_id'];
     foreach ($required_fields as $field) {
         if (!isset($input[$field]) || empty($input[$field])) {
-            echo json_encode([
-                "status" => "error",
-                "message" => "ข้อมูลไม่ครบถ้วน: $field"
-            ]);
+            echo json_encode(["status" => "error", "message" => "ข้อมูลไม่ครบถ้วน: $field"]);
             exit;
         }
     }
@@ -97,85 +85,49 @@ try {
 
     $today = date('Y-m-d');
     if ($booking_date < $today) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "ไม่สามารถจองย้อนหลังได้ กรุณาเลือกวันที่ปัจจุบันหรืออนาคต"
-        ]);
+        echo json_encode(["status" => "error", "message" => "ไม่สามารถจองย้อนหลังได้ กรุณาเลือกวันที่ปัจจุบันหรืออนาคต"]);
         exit;
     }
 
-    if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $start_time)) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "รูปแบบเวลาเริ่มต้นไม่ถูกต้อง (ต้องเป็น HH:MM)"
-        ]);
-        exit;
-    }
-
-    if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $end_time)) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "รูปแบบเวลาสิ้นสุดไม่ถูกต้อง (ต้องเป็น HH:MM)"
-        ]);
+    if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $start_time) || !preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $end_time)) {
+        echo json_encode(["status" => "error", "message" => "รูปแบบเวลาไม่ถูกต้อง (ต้องเป็น HH:MM)"]);
         exit;
     }
 
     if (!isNotPastTime($booking_date, $start_time)) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "⚠️ ไม่สามารถจองเวลาที่ผ่านมาแล้วได้ กรุณาเลือกเวลาในอนาคต"
-        ]);
+        echo json_encode(["status" => "error", "message" => "⚠️ ไม่สามารถจองเวลาที่ผ่านมาแล้วได้ กรุณาเลือกเวลาในอนาคต"]);
         exit;
     }
 
     if (!isBookingAtLeast3HoursInAdvance($booking_date, $start_time)) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "⚠️ กรุณาจองล่วงหน้าอย่างน้อย 3 ชั่วโมง"
-        ]);
+        echo json_encode(["status" => "error", "message" => "⚠️ กรุณาจองล่วงหน้าอย่างน้อย 3 ชั่วโมง"]);
         exit;
     }
 
     if ($start_time >= $end_time) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น"
-        ]);
+        echo json_encode(["status" => "error", "message" => "เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น"]);
         exit;
     }
 
     $start_time .= ':00';
     $end_time   .= ':00';
 
-    $checkCapacity = $pdo->prepare("
-        SELECT room_name, capacity, open_time, close_time 
-        FROM Meeting_Rooms 
-        WHERE room_id = :room_id
-    ");
+    $checkCapacity = $pdo->prepare("SELECT room_name, capacity, open_time, close_time FROM Meeting_Rooms WHERE room_id = :room_id");
     $checkCapacity->execute(['room_id' => $room_id]);
     $room = $checkCapacity->fetch(PDO::FETCH_ASSOC);
 
     if (!$room) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "ไม่พบข้อมูลห้องประชุม"
-        ]);
+        echo json_encode(["status" => "error", "message" => "ไม่พบข้อมูลห้องประชุม"]);
         exit;
     }
 
     if ($capacity > $room['capacity']) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "จำนวนผู้เข้าร่วม ({$capacity} คน) เกินความจุของห้อง {$room['room_name']} (รองรับได้ {$room['capacity']} คน)"
-        ]);
+        echo json_encode(["status" => "error", "message" => "จำนวนผู้เข้าร่วม ({$capacity} คน) เกินความจุของห้อง {$room['room_name']} (รองรับได้ {$room['capacity']} คน)"]);
         exit;
     }
 
     if ($start_time < $room['open_time'] || $end_time > $room['close_time']) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "ไม่สามารถจองได้ เนื่องจากเวลาที่เลือกอยู่นอกเวลาเปิด-ปิดของห้อง ({$room['open_time']} - {$room['close_time']})"
-        ]);
+        echo json_encode(["status" => "error", "message" => "ไม่สามารถจองได้ เนื่องจากเวลาที่เลือกอยู่นอกเวลาเปิด-ปิดของห้อง ({$room['open_time']} - {$room['close_time']})"]);
         exit;
     }
 
@@ -186,81 +138,17 @@ try {
         AND booking_date = :booking_date 
         AND status = 1
     ");
-    $checkAvailability->execute([
-        'room_id'      => $room_id,
-        'booking_date' => $booking_date
-    ]);
+    $checkAvailability->execute(['room_id' => $room_id, 'booking_date' => $booking_date]);
     $existingBookings = $checkAvailability->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($existingBookings as $booking) {
         if ($start_time < $booking['end_time'] && $end_time > $booking['start_time']) {
-            echo json_encode([
-                "status" => "error",
-                "message" => "ห้องนี้ถูกจองในช่วงเวลาที่เลือกแล้ว"
-            ]);
+            echo json_encode(["status" => "error", "message" => "ห้องนี้ถูกจองในช่วงเวลาที่เลือกแล้ว"]);
             exit;
         }
     }
 
     $pdo->beginTransaction();
-
-$insertBooking = $pdo->prepare("
-    INSERT INTO Bookings 
-    (user_id, room_id, booking_date, start_time, end_time, purpose, attendees_count, table_layout, status, created_at, updated_at)
-    VALUES 
-    (:user_id, :room_id, :booking_date, :start_time, :end_time, :purpose, :attendees_count, :table_layout, 1, NOW(), NOW())
-");
-
-$insertBooking->execute([
-    'user_id'        => $user_id,
-    'room_id'        => $room_id,
-    'booking_date'   => $booking_date,
-    'start_time'     => $start_time,
-    'end_time'       => $end_time,
-    'purpose'        => $purpose,
-    'attendees_count'=> $capacity,
-    'table_layout'   => $table_layout_id
-]);
-
-$booking_id = $pdo->lastInsertId();
-
-if (!empty($equipments) && is_array($equipments)) {
-
-    $insertEquipment = $pdo->prepare("
-        INSERT INTO Booking_Equipment (booking_id, equipment_id, quantity)
-        VALUES (:booking_id, :equipment_id, :quantity)
-    ");
-
-    $updateEquipment = $pdo->prepare("
-        UPDATE Equipment 
-        SET quantity = quantity - 1
-        WHERE equipment_id = :equipment_id
-        AND quantity >= 1
-    ");
-
-    foreach ($equipments as $equipment_id) {
-        $eq_id = intval($equipment_id);
-
-        if ($eq_id > 0) {
-
-            $updateEquipment->execute([
-                'equipment_id' => $eq_id
-            ]);
-
-            if ($updateEquipment->rowCount() == 0) {
-                throw new Exception("อุปกรณ์ไม่เพียงพอ");
-            }
-
-            $insertEquipment->execute([
-                'booking_id'   => $booking_id,
-                'equipment_id' => $eq_id,
-                'quantity'     => 1
-            ]);
-        }
-    }
-}
-$pdo->commit();
-
     $insertBooking = $pdo->prepare("
         INSERT INTO Bookings 
         (user_id, room_id, booking_date, start_time, end_time, purpose, attendees_count, table_layout, status, created_at, updated_at)
@@ -289,19 +177,16 @@ $pdo->commit();
 
         $updateEquipment = $pdo->prepare("
             UPDATE Equipment 
-            SET quantity = quantity - :qty
+            SET quantity = quantity - 1
             WHERE equipment_id = :equipment_id
-            AND quantity >= :qty
+            AND quantity >= 1
         ");
 
         foreach ($equipments as $equipment_id) {
             $eq_id = intval($equipment_id);
-            if ($eq_id > 0) {
 
-                $updateEquipment->execute([
-                    'equipment_id' => $eq_id,
-                    'qty' => 1
-                ]);
+            if ($eq_id > 0) {
+                $updateEquipment->execute(['equipment_id' => $eq_id]);
 
                 if ($updateEquipment->rowCount() == 0) {
                     throw new Exception("อุปกรณ์ไม่เพียงพอ");
@@ -315,9 +200,7 @@ $pdo->commit();
             }
         }
     }
-
     $pdo->commit();
-
     echo json_encode([
         "status"       => "success",
         "message"      => "จองห้องประชุมสำเร็จ",
@@ -330,18 +213,12 @@ $pdo->commit();
         $pdo->rollBack();
     }
     error_log("Booking Error: " . $e->getMessage());
-    echo json_encode([
-        "status"  => "error",
-        "message" => "Database Error: " . $e->getMessage()
-    ]);
+    echo json_encode(["status" => "error", "message" => "Database Error: " . $e->getMessage()]);
 } catch (Exception $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
     error_log("Booking Error: " . $e->getMessage());
-    echo json_encode([
-        "status"  => "error",
-        "message" => "Error: " . $e->getMessage()
-    ]);
+    echo json_encode(["status" => "error", "message" => "Error: " . $e->getMessage()]);
 }
 ?>

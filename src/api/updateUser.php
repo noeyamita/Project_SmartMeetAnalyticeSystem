@@ -3,66 +3,73 @@ session_start();
 header("Content-Type: application/json");
 require_once __DIR__ . '/../config/config.php';
 
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(["status" => "error", "message" => "Please login first"]);
+    exit;
+}
+
+$userId = $_SESSION['user_id'];
+$data = json_decode(file_get_contents("php://input"), true);
+
+if (!$data) {
+    echo json_encode(["status" => "error", "message" => "Invalid request data"]);
+    exit;
+}
+
 try {
-    // ตรวจสอบว่ามีการ login หรือไม่
-    if (!isset($_SESSION['user_id'])) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "Please login first"
-        ]);
-        exit;
-    }
-
-    // อ่านข้อมูล JSON ที่ส่งมา
-    $input = json_decode(file_get_contents('php://input'), true);
+    $fname = trim($data['fname']);
+    $lname = trim($data['lname']);
+    $phone = trim($data['phone']);
     
-    $userId = $_SESSION['user_id'];
-    $fname = isset($input['fname']) ? trim($input['fname']) : null;
-    $lname = isset($input['lname']) ? trim($input['lname']) : null;
-    $phone = isset($input['phone']) ? trim($input['phone']) : null;
+    $isEmailChanged = isset($data['email']) && !empty(trim($data['email']));
 
-    // ตรวจสอบข้อมูล
-    if (empty($fname) || empty($lname)) {
-        echo json_encode([
-            "status" => "error",
-            "message" => "First name and last name are required"
-        ]);
-        exit;
+    if ($isEmailChanged) {
+        $newEmail = trim($data['email']);
+        $currentPassword = $data['current_password'] ?? '';
+
+        if (empty($currentPassword)) {
+            echo json_encode(["status" => "error", "message" => "กรุณากรอกรหัสผ่านเพื่อยืนยันการเปลี่ยนอีเมล"]);
+            exit;
+        }
+
+        $stmt = $pdo->prepare("SELECT user_password FROM users WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user || !password_verify($currentPassword, $user['user_password'])) {
+            echo json_encode(["status" => "error", "message" => "รหัสผ่านปัจจุบันไม่ถูกต้อง!"]);
+            exit; 
+        }
+
+        $stmtEmail = $pdo->prepare("SELECT user_id FROM users WHERE email = ? AND user_id != ?");
+        $stmtEmail->execute([$newEmail, $userId]);
+        if ($stmtEmail->rowCount() > 0) {
+            echo json_encode(["status" => "error", "message" => "อีเมลนี้มีผู้ใช้งานแล้ว!"]);
+            exit;
+        }
     }
 
-    // อัปเดตข้อมูล
-    $stmt = $pdo->prepare("
-        UPDATE users 
-        SET fname = :fname, 
-            lname = :lname, 
-            phone = :phone
-        WHERE user_id = :user_id
-    ");
+    $updateFields = ["fname = ?", "lname = ?", "phone = ?"];
+    $params = [$fname, $lname, $phone];
 
-    $result = $stmt->execute([
-        'fname' => $fname,
-        'lname' => $lname,
-        'phone' => $phone,
-        'user_id' => $userId
+    if ($isEmailChanged) {
+        $updateFields[] = "email = ?";
+        $params[] = $newEmail;
+    }
+
+    $params[] = $userId;
+
+    $sql = "UPDATE users SET " . implode(", ", $updateFields) . " WHERE user_id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    echo json_encode([
+        "status" => "success",
+        "message" => "อัปเดตข้อมูลโปรไฟล์เรียบร้อยแล้ว"
     ]);
-
-    if ($result) {
-        echo json_encode([
-            "status" => "success",
-            "message" => "Profile updated successfully"
-        ]);
-    } else {
-        echo json_encode([
-            "status" => "error",
-            "message" => "Failed to update profile"
-        ]);
-    }
 
 } catch (PDOException $e) {
     error_log("Update User Error: " . $e->getMessage());
-    echo json_encode([
-        "status" => "error",
-        "message" => "Database error: " . $e->getMessage()
-    ]);
+    echo json_encode(["status" => "error", "message" => "Database error: " . $e->getMessage()]);
 }
 ?>

@@ -3,22 +3,11 @@ session_start();
 require_once __DIR__ . '/../config/config.php';
 header("Content-Type: application/json");
 
-// ฟังก์ชันแปลง Decimal -> HH:MM
-function decimalToTime($decimal) {
-    if ($decimal === null) return null;
-    
-    $hours = floor($decimal);
-    $minutes = round(($decimal - $hours) * 100);
-    
-    return sprintf("%02d:%02d", $hours, $minutes);
-}
-
 try {
-    // กำหนดช่วงเวลา (08:00-11:59, 12:00-15:59, 16:00-19:59)
     $timeRanges = [
-        ['start' => 8.00, 'end' => 11.59, 'label' => '08:00 - 12:00'],
-        ['start' => 12.00, 'end' => 15.59, 'label' => '12:00 - 16:00'],
-        ['start' => 16.00, 'end' => 19.59, 'label' => '16:00 - 20:00']
+        ['start' => '08:00:00', 'end' => '11:59:59', 'label' => '08:00 - 12:00'],
+        ['start' => '12:00:00', 'end' => '15:59:59', 'label' => '12:00 - 16:00'],
+        ['start' => '16:00:00', 'end' => '21:00:00', 'label' => '16:00 - 21:00']
     ];
 
     $result = [];
@@ -31,7 +20,7 @@ try {
             AND MONTH(booking_date) = MONTH(CURDATE())
             AND status = 1
             AND start_time >= :start_time
-            AND start_time < :end_time
+            AND start_time <= :end_time
         ";
 
         $stmt = $pdo->prepare($query);
@@ -44,7 +33,7 @@ try {
 
         $result[] = [
             'time_range' => $range['label'],
-            'booking_count' => $data['count']
+            'booking_count' => (int)$data['count']
         ];
     }
 

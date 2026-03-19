@@ -124,15 +124,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // 1.แก้ไขข้อมูล
+    // ฟังก์ชันช่วยเคลียร์ช่องรหัสผ่าน
+    function clearEmailConfirmation() {
+        emailConfirmationFields.style.display = 'none';
+        const passwordInput = document.getElementById('confirm-email-password');
+        if (passwordInput) passwordInput.value = '';
+    }
+
+    // ในฟังก์ชัน revertToEditMode เดิมของคุณ ให้เพิ่ม clearEmailConfirmation() เข้าไปด้วย
+    function revertToEditMode() {
+        fullNameInput.disabled = true;
+        userEmailInput.disabled = true;
+        userPhoneInput.disabled = true;
+
+        toggleEditInfoBtn.textContent = 'Edit Profile';
+        toggleEditInfoBtn.classList.add('primary-btn');
+        toggleEditInfoBtn.classList.remove('save-btn');
+        toggleEditInfoBtn.style.display = 'block';
+
+        const existingCancelButton = editProfileForm.querySelector('.cancel-edit-profile');
+        if (existingCancelButton) existingCancelButton.remove();
+
+        clearEmailConfirmation(); // เพิ่มบรรทัดนี้
+        isEditingProfile = false;
+    }
+
+    // 1.แก้ไขข้อมูล (อัปเดตใหม่)
     toggleEditInfoBtn.addEventListener('click', async () => {
         if (!isEditingProfile) {
-            // เริ่มแก้ไข
             originalFname = currentUser.fname;
             originalLname = currentUser.lname;
+            originalPhone = currentUser.phone;
 
             fullNameInput.disabled = false;
-            userEmailInput.disabled = true;
+            userEmailInput.disabled = false; // เปิดให้แก้ Email
             userPhoneInput.disabled = false;
 
             toggleEditInfoBtn.textContent = 'Save Changes';
@@ -140,21 +165,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             toggleEditInfoBtn.classList.remove('primary-btn');
             isEditingProfile = true;
 
-            // เพิ่มปุ่ม Cancel
             const cancelButton = document.createElement('button');
             cancelButton.type = 'button';
             cancelButton.textContent = 'Cancel';
             cancelButton.classList.add('btn', 'secondary-btn', 'cancel-edit-profile');
             cancelButton.addEventListener('click', () => {
                 fullNameInput.value = currentUser.fullName;
+                userEmailInput.value = currentUser.email;
+                userPhoneInput.value = currentUser.phone;
                 revertToEditMode();
             });
             formActionsDiv.appendChild(cancelButton);
 
         } else {
-            // บันทึกการเปลี่ยนแปลง
             const newFullName = fullNameInput.value.trim();
             const newPhone = userPhoneInput.value.trim();
+            const newEmail = userEmailInput.value.trim();
             const nameParts = newFullName.split(' ');
 
             if (nameParts.length < 2) {
@@ -162,24 +188,55 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
+            if (!newEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                showNotification('รูปแบบอีเมลไม่ถูกต้อง', 'error');
+                return;
+            }
+
             const newFname = nameParts[0];
             const newLname = nameParts.slice(1).join(' ');
+            const isEmailChanged = newEmail !== currentUser.email;
 
-            if (newFname === originalFname && newLname === originalLname && newPhone === originalPhone) {
+            if (newFname === originalFname && newLname === originalLname && newPhone === originalPhone && !isEmailChanged) {
                 showNotification('ไม่มีการเปลี่ยนแปลงข้อมูล', 'warning');
                 revertToEditMode();
                 return;
+            }
+
+            let confirmPassword = '';
+            if (isEmailChanged) {
+                const passwordInput = document.getElementById('confirm-email-password');
+                if (emailConfirmationFields.style.display === 'none') {
+                    emailConfirmationFields.style.display = 'block';
+                    showNotification('กรุณากรอกรหัสผ่านปัจจุบันเพื่อยืนยันการเปลี่ยนอีเมล', 'warning');
+                    passwordInput.focus();
+                    return;
+                }
+
+                if (!passwordInput.value.trim()) {
+                    showNotification('กรุณากรอกรหัสผ่านปัจจุบัน', 'error');
+                    passwordInput.focus();
+                    return;
+                }
+
+                confirmPassword = passwordInput.value;
+            }
+            const payload = {
+                fname: newFname,
+                lname: newLname,
+                phone: newPhone
+            };
+
+            if (isEmailChanged) {
+                payload.email = newEmail;
+                payload.current_password = confirmPassword;
             }
 
             try {
                 const response = await fetch(`${API_BASE}updateUser.php`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        fname: newFname,
-                        lname: newLname,
-                        phone: newPhone
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 const result = await response.json();
@@ -189,14 +246,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     currentUser.lname = newLname;
                     currentUser.fullName = newFullName;
                     currentUser.phone = newPhone;
+                    if (isEmailChanged) currentUser.email = newEmail;
+
                     showNotification('อัปเดตข้อมูลสำเร็จ!', 'success');
                     revertToEditMode();
                 } else {
-                    showNotification('เกิดข้อผิดพลาด: ' + result.message, 'error');
+                    showNotification(result.message, 'error');
                 }
             } catch (error) {
                 console.error('Update error:', error);
-                showNotification('ไม่สามารถอัปเดตข้อมูลได้', 'error');
+                showNotification('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
             }
         }
     });

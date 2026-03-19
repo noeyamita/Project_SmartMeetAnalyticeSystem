@@ -1,19 +1,11 @@
 <?php
 session_start();
+ini_set('display_errors', 0); 
 header("Content-Type: application/json");
 require_once __DIR__ . '/../config/config.php';
-
-// กำหนด status constants ตามตาราง status
-define('STATUS_SUCCESS', 1);      // จองสำเร็จ
-define('STATUS_CANCELLED', 2);    // ยกเลิกการจอง
-define('STATUS_PENDING', 3);      // รออนุมัติการย้ายห้อง
-
-// ฟังก์ชันแปลง Decimal -> HH:MM (ตรงข้ามกับ timeToDecimal)
-function decimalToTime($decimal) {
-    $hours = floor($decimal);
-    $minutes = round(($decimal - $hours) * 100); // แปลง .40 เป็น 40 นาที
-    return sprintf("%02d:%02d", $hours, $minutes);
-}
+define('STATUS_SUCCESS', 1);      
+define('STATUS_CANCELLED', 2);    
+define('STATUS_PENDING', 3);    
 
 try {
     if (!isset($_SESSION['user_id'])) {
@@ -36,7 +28,6 @@ try {
         exit;
     }
 
-    // ดึงข้อมูลการจองพร้อมวันที่และเวลา
     $stmt = $pdo->prepare("
         SELECT booking_id, status, user_id, booking_date, start_time 
         FROM Bookings 
@@ -69,25 +60,10 @@ try {
         exit;
     }
 
-    // แปลง start_time จาก decimal เป็น HH:MM
-    $startTimeFormatted = decimalToTime($booking['start_time']);
-    
-    // สร้าง DateTime สำหรับเปรียบเทียบ
-    $bookingDateTime = $booking['booking_date'] . ' ' . $startTimeFormatted . ':00';
+    $startTime = $booking['start_time']; 
+    $bookingDateTime = $booking['booking_date'] . ' ' . $startTime;
     $bookingTimestamp = strtotime($bookingDateTime);
     $currentTimestamp = time();
-
-    // Debug log
-    error_log("=== Cancel Booking Debug ===");
-    error_log("Booking Date: " . $booking['booking_date']);
-    error_log("Start Time (decimal): " . $booking['start_time']);
-    error_log("Start Time (formatted): " . $startTimeFormatted);
-    error_log("Booking DateTime: " . $bookingDateTime);
-    error_log("Booking Timestamp: " . date('Y-m-d H:i:s', $bookingTimestamp));
-    error_log("Current Timestamp: " . date('Y-m-d H:i:s', $currentTimestamp));
-    error_log("Can Cancel: " . ($currentTimestamp < $bookingTimestamp ? 'YES' : 'NO'));
-
-    // ตรวจสอบว่าเวลาผ่านมาแล้วหรือยัง
     if ($currentTimestamp >= $bookingTimestamp) {
         echo json_encode([
             "status" => "error",
@@ -96,7 +72,6 @@ try {
         exit;
     }
 
-    // อัปเดตสถานะเป็น 2 (ยกเลิกการจอง)
     $stmt = $pdo->prepare("
         UPDATE Bookings 
         SET status = :status 
@@ -109,7 +84,6 @@ try {
     ]);
 
     if ($result) {
-        // อัปเดตจำนวนการยกเลิกของผู้ใช้
         $stmt = $pdo->prepare("
             UPDATE users 
             SET cancellation_count = cancellation_count + 1 
