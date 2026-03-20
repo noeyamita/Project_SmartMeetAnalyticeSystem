@@ -264,6 +264,12 @@ async function confirmBooking() {
             showAlert('จองห้องประชุมสำเร็จ', 'success', 8000);
             closeModal();
             searchRooms();
+
+            //เปิดหน้าต่างย้ายห้องอัตโนมัติ
+            if (result.displaced_bookings && result.displaced_bookings.length > 0) {
+                displacedBookingsQueue = result.displaced_bookings;
+                processNextDisplacedBooking();
+            }
         } else {
             showAlert(result.message);
         }
@@ -283,17 +289,15 @@ function renderRooms(rooms) {
     const userEnd = document.getElementById("end_time").value;
     const warning = document.getElementById("timeWarning");
 
+    let rawRole = sessionStorage.getItem('userRole') || window.USER_ROLE || 'normal';
+    const currentUserRole = rawRole.toLowerCase();
     let hasAvailableRoom = false;
 
-    // reset UI
     if (warning) warning.style.display = "none";
     roomsGrid.innerHTML = '';
+
     if (!rooms || rooms.length === 0) {
-        roomsGrid.innerHTML = `
-            <div class="empty-state">
-                ❌ ไม่พบห้องประชุม
-            </div>
-        `;
+        roomsGrid.innerHTML = `<div class="empty-state">ไม่พบห้องประชุม</div>`;
         if (warning) warning.style.display = "block";
         return;
     }
@@ -321,15 +325,26 @@ function renderRooms(rooms) {
             chipClass = 'unknown';
             statusClass = 'unavailable';
         }
+
         const isAvailable = status === 'available';
+        let buttonHtml = '';
+        if (isAvailable) {
+            buttonHtml = `<button class="btn primary" onclick="openBookingModal(${room.room_id}, false)">เลือกห้อง</button>`;
+        } else {
+            if (currentUserRole === 'executive') {
+                buttonHtml = `<button class="btn warning" style="background-color: #f59e0b; color: white;" onclick="openBookingModal(${room.room_id}, true)">ขอใช้ห้องแทน</button>`;
+            } else if (currentUserRole === 'admin') {
+                buttonHtml = `<button class="btn danger" style="background-color: #ef4444; color: white;" onclick="openBookingModal(${room.room_id}, true)">จองทับ / ย้าย</button>`;
+            } else {
+                buttonHtml = `<button class="btn primary" disabled>เลือกห้อง</button>`;
+            }
+        }
+
         const card = document.createElement('div');
         card.className = `room-card ${statusClass}`;
         card.setAttribute('data-room-id', room.room_id);
 
-        const imageUrl = room.image_url && room.image_url.trim() !== ''
-            ? room.image_url
-            : 'uploads/rooms/default_room.jpg';
-
+        const imageUrl = room.image_url && room.image_url.trim() !== '' ? room.image_url : 'uploads/rooms/default_room.jpg';
         const operatingHours = `${room.open_time || '00:00'} - ${room.close_time || '23:59'}`;
         const roomLocation = `${room.floor_number || '-'} | ขนาด ${room.room_size || 'N/A'}`;
 
@@ -346,11 +361,7 @@ function renderRooms(rooms) {
                         <span class="chip ${chipClass}"></span>
                         ${statusText}
                     </div>
-                    <button class="btn primary"
-                        onclick="openBookingModal(${room.room_id})"
-                        ${isAvailable ? '' : 'disabled'}>
-                        เลือกห้อง
-                    </button>
+                    ${buttonHtml}
                 </div>
             </div>
         `;
@@ -359,22 +370,124 @@ function renderRooms(rooms) {
 
     if (!hasAvailableRoom) {
         if (warning) warning.style.display = "block";
-
-        roomsGrid.innerHTML = `
-            <div class="empty-state">
-                ไม่มีห้องในช่วงเวลานี้<br>
-                กรุณาเลือกเวลาใหม่
-            </div>
-        `;
+        roomsGrid.innerHTML = `<div class="empty-state">ไม่มีห้องในช่วงเวลานี้<br>กรุณาเลือกเวลาใหม่</div>`;
     }
 }
 
-function openBookingModal(roomId) {
+let isOverrideRequest = false;
+function openBookingModal(roomId, isOverride = false) {
     selectedRoom = availableRooms.find(r => r.room_id == roomId);
+    isOverrideRequest = isOverride;
     document.getElementById('bookingModal').classList.add('active');
+    const modalTitle = document.querySelector('.modal-header h3');
+    const currentUserRole = (sessionStorage.getItem('userRole') || 'normal').toLowerCase();
+
+    if (isOverride) {
+        if (currentUserRole === 'admin') {
+            modalTitle.textContent = 'ยืนยันการจองทับ (สิทธิ์ Admin)';
+            modalTitle.style.color = '#ef4444';
+        } else {
+            modalTitle.textContent = 'ส่งคำขอใช้ห้องแทน (สิทธิ์ Executive)';
+            modalTitle.style.color = '#f59e0b';
+        }
+    } else {
+        modalTitle.textContent = 'ยืนยันการจองห้องประชุม';
+        modalTitle.style.color = '#2c3e50';
+    }
 }
 
 function closeModal() {
     document.getElementById('bookingModal').classList.remove('active');
     selectedRoom = null;
+}
+
+
+let displacedBookingsQueue = [];
+let currentDisplacedBookingId = null;
+let selectedAltRoomId = null;
+
+async function processNextDisplacedBooking() {
+    if (displacedBookingsQueue.length === 0) return;
+
+    const booking = displacedBookingsQueue.shift();
+    currentDisplacedBookingId = booking.booking_id;
+    selectedAltRoomId = null;
+
+    document.getElementById('altRoomModal').classList.add('active');
+    document.getElementById('altRoomList').innerHTML = '<div class="loading">กำลังค้นหาห้องว่าง...</div>';
+    document.getElementById('confirmMoveBtn').disabled = true;
+
+    try {
+        const response = await fetch(`../src/api/getAlternativeRooms.php?booking_id=${booking.booking_id}`);
+        const result = await response.json();
+
+        if (result.status === 'success' && result.data.length > 0) {
+            let html = `<div style="margin-bottom: 15px; padding: 10px; background: #fffbeb; border-radius: 8px;">
+                            <strong style="color:#d97706;">ต้องการหาห้องแทนให้ (ID: ${booking.booking_id})</strong><br>
+                            รองรับผู้เข้าร่วมเดิม: ${booking.attendees_count} คน
+                        </div>`;
+            html += '<div class="equipment-list">';
+            result.data.forEach((room) => {
+                html += `
+                <div class="layout-item">
+                    <input type="radio" name="alt_room" value="${room.room_id}" id="alt_room_${room.room_id}" onchange="selectAltRoom(${room.room_id})">
+                    <label for="alt_room_${room.room_id}" style="display:flex; flex-direction:column;">
+                        <strong>${room.room_name}</strong>
+                        <span style="font-size:12px; color:#666;">(จุได้ ${room.capacity} คน, ชั้น ${room.floor_number || '-'})</span>
+                    </label>
+                </div>`;
+            });
+            html += '</div>';
+            document.getElementById('altRoomList').innerHTML = html;
+        } else {
+            document.getElementById('altRoomList').innerHTML = '<div class="empty-state">ไม่พบห้องว่างอื่นๆ ที่รองรับจำนวนคนได้ในช่วงเวลานี้</div>';
+        }
+    } catch (e) {
+        document.getElementById('altRoomList').innerHTML = '<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+    }
+}
+
+function selectAltRoom(roomId) {
+    selectedAltRoomId = roomId;
+    document.getElementById('confirmMoveBtn').disabled = false;
+}
+
+async function confirmMoveRoom() {
+    if (!selectedAltRoomId) return;
+    const confirmBtn = document.getElementById('confirmMoveBtn');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = "กำลังย้ายห้อง...";
+
+    try {
+        const response = await fetch('../src/api/moveBooking.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                booking_id: currentDisplacedBookingId,
+                new_room_id: selectedAltRoomId
+            })
+        });
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            showAlert('ย้ายการจองไปยังห้องใหม่ พร้อมอุปกรณ์เดิมสำเร็จ!', 'success');
+        } else {
+            showAlert('ย้ายห้องไม่สำเร็จ: ' + result.message);
+        }
+    } catch (e) {
+        showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+    }
+    confirmBtn.textContent = "ยืนยันการย้ายไปห้องนี้";
+    document.getElementById('altRoomModal').classList.remove('active');
+    searchRooms();
+    if (displacedBookingsQueue.length > 0) {
+        setTimeout(processNextDisplacedBooking, 500);
+    }
+}
+
+function skipMoveRoom() {
+    document.getElementById('altRoomModal').classList.remove('active');
+    if (displacedBookingsQueue.length > 0) {
+        setTimeout(processNextDisplacedBooking, 500);
+    }
 }

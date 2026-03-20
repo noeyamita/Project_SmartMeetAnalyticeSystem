@@ -95,12 +95,12 @@ try {
     }
 
     if (!isNotPastTime($booking_date, $start_time)) {
-        echo json_encode(["status" => "error", "message" => "⚠️ ไม่สามารถจองเวลาที่ผ่านมาแล้วได้ กรุณาเลือกเวลาในอนาคต"]);
+        echo json_encode(["status" => "error", "message" => "ไม่สามารถจองเวลาที่ผ่านมาแล้วได้ กรุณาเลือกเวลาในอนาคต"]);
         exit;
     }
 
     if (!isBookingAtLeast3HoursInAdvance($booking_date, $start_time)) {
-        echo json_encode(["status" => "error", "message" => "⚠️ กรุณาจองล่วงหน้าอย่างน้อย 3 ชั่วโมง"]);
+        echo json_encode(["status" => "error", "message" => "กรุณาจองล่วงหน้าอย่างน้อย 3 ชั่วโมง"]);
         exit;
     }
 
@@ -122,12 +122,12 @@ try {
     }
 
     if ($capacity > $room['capacity']) {
-        echo json_encode(["status" => "error", "message" => "จำนวนผู้เข้าร่วม ({$capacity} คน) เกินความจุของห้อง {$room['room_name']} (รองรับได้ {$room['capacity']} คน)"]);
+        echo json_encode(["status" => "error", "message" => "จำนวนผู้เข้าร่วม ({$capacity} คน) เกินความจุของห้อง {$room['room_name']}"]);
         exit;
     }
 
     if ($start_time < $room['open_time'] || $end_time > $room['close_time']) {
-        echo json_encode(["status" => "error", "message" => "ไม่สามารถจองได้ เนื่องจากเวลาที่เลือกอยู่นอกเวลาเปิด-ปิดของห้อง ({$room['open_time']} - {$room['close_time']})"]);
+        echo json_encode(["status" => "error", "message" => "เวลานอกเวลาเปิด-ปิดห้อง ({$room['open_time']} - {$room['close_time']})"]);
         exit;
     }
 
@@ -141,19 +141,47 @@ try {
     $checkAvailability->execute(['room_id' => $room_id, 'booking_date' => $booking_date]);
     $existingBookings = $checkAvailability->fetchAll(PDO::FETCH_ASSOC);
 
+    $hasOverlap = false;
+    $overlappingIds = [];
     foreach ($existingBookings as $booking) {
         if ($start_time < $booking['end_time'] && $end_time > $booking['start_time']) {
+            $hasOverlap = true;
+            $overlappingIds[] = $booking['booking_id'];
+        }
+    }
+
+    $bookingStatus = 1; 
+
+    if ($hasOverlap) {
+        if ($role === 'normal') {
             echo json_encode(["status" => "error", "message" => "ห้องนี้ถูกจองในช่วงเวลาที่เลือกแล้ว"]);
             exit;
+        } elseif ($role === 'executive') {
+            $bookingStatus = 3;
+        } elseif ($role === 'admin') {
+            $bookingStatus = 1;
         }
     }
 
     $pdo->beginTransaction();
+
+    $displacedBookings = [];
+    if ($hasOverlap && $role === 'admin' && count($overlappingIds) > 0) {
+        $placeholders = implode(',', array_fill(0, count($overlappingIds), '?'));
+
+        $stmtDetails = $pdo->prepare("SELECT booking_id, attendees_count FROM Bookings WHERE booking_id IN ($placeholders)");
+        $stmtDetails->execute($overlappingIds);
+        $displacedBookings = $stmtDetails->fetchAll(PDO::FETCH_ASSOC);
+
+        $updateOld = $pdo->prepare("UPDATE Bookings SET status = 4, updated_at = NOW() WHERE booking_id IN ($placeholders)");
+        $updateOld->execute($overlappingIds);
+    }
+
     $insertBooking = $pdo->prepare("
         INSERT INTO Bookings 
         (user_id, room_id, booking_date, start_time, end_time, purpose, attendees_count, table_layout, status, created_at, updated_at)
         VALUES 
-        (:user_id, :room_id, :booking_date, :start_time, :end_time, :purpose, :attendees_count, :table_layout, 1, NOW(), NOW())
+        (:user_id, :room_id, :booking_date, :start_time, :end_time, :purpose, :attendees_count, :table_layout, :status, NOW(), NOW())
     ");
 
     $insertBooking->execute([
@@ -164,7 +192,8 @@ try {
         'end_time'       => $end_time,
         'purpose'        => $purpose,
         'attendees_count'=> $capacity,
-        'table_layout'   => $table_layout_id
+        'table_layout'   => $table_layout_id,
+        'status'         => $bookingStatus
     ]);
 
     $booking_id = $pdo->lastInsertId();
@@ -201,11 +230,19 @@ try {
         }
     }
     $pdo->commit();
+    $successMessage = "จองห้องประชุมสำเร็จ";
+    if ($bookingStatus === 3 && $role === 'executive') {
+        $successMessage = "ส่งคำขอใช้ห้องแทนเรียบร้อยแล้ว รอแอดมินอนุมัติ";
+    } elseif ($hasOverlap && $role === 'admin') {
+        $successMessage = "จองทับสำเร็จ (การจองเดิมถูกเปลี่ยนสถานะเป็น 'ถูกย้ายห้อง' เรียบร้อยแล้ว)";
+    }
+
     echo json_encode([
         "status"       => "success",
-        "message"      => "จองห้องประชุมสำเร็จ",
+        "message"      => $successMessage,
         "booking_id"   => $booking_id,
-        "booking_time" => $start_time . " - " . $end_time
+        "booking_time" => $start_time . " - " . $end_time,
+        "displaced_bookings" => $displacedBookings 
     ]);
 
 } catch (PDOException $e) {

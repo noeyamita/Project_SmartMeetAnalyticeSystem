@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterDateInput = document.getElementById('filter-date');
     const filterStatusSelect = document.getElementById('filter-status');
 
-    //แสดงข้อมูลผู้ใช้
     function displayUserInfo() {
         if (!currentUser) return;
 
@@ -46,8 +45,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (existingCancelButton) {
             existingCancelButton.remove();
         }
-        emailConfirmationFields.style.display = 'none';
+
+        clearEmailConfirmation();
         isEditingProfile = false;
+    }
+
+    function clearEmailConfirmation() {
+        emailConfirmationFields.style.display = 'none';
+        const passwordInput = document.getElementById('confirm-email-password');
+        if (passwordInput) passwordInput.value = '';
     }
 
     function showNotification(message, type = 'info') {
@@ -76,7 +82,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 3000);
     }
 
-    // โหลดข้อมูลผู้ใช้จาก API
     try {
         const userResponse = await fetch(`${API_BASE}getUser.php`);
         const userData = await userResponse.json();
@@ -104,7 +109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         showNotification('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
     }
 
-    // --- Tab Navigation Logic ---
+    //Tab Navigation
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
 
@@ -124,32 +129,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // ฟังก์ชันช่วยเคลียร์ช่องรหัสผ่าน
-    function clearEmailConfirmation() {
-        emailConfirmationFields.style.display = 'none';
-        const passwordInput = document.getElementById('confirm-email-password');
-        if (passwordInput) passwordInput.value = '';
-    }
-
-    // ในฟังก์ชัน revertToEditMode เดิมของคุณ ให้เพิ่ม clearEmailConfirmation() เข้าไปด้วย
-    function revertToEditMode() {
-        fullNameInput.disabled = true;
-        userEmailInput.disabled = true;
-        userPhoneInput.disabled = true;
-
-        toggleEditInfoBtn.textContent = 'Edit Profile';
-        toggleEditInfoBtn.classList.add('primary-btn');
-        toggleEditInfoBtn.classList.remove('save-btn');
-        toggleEditInfoBtn.style.display = 'block';
-
-        const existingCancelButton = editProfileForm.querySelector('.cancel-edit-profile');
-        if (existingCancelButton) existingCancelButton.remove();
-
-        clearEmailConfirmation(); // เพิ่มบรรทัดนี้
-        isEditingProfile = false;
-    }
-
-    // 1.แก้ไขข้อมูล (อัปเดตใหม่)
     toggleEditInfoBtn.addEventListener('click', async () => {
         if (!isEditingProfile) {
             originalFname = currentUser.fname;
@@ -157,7 +136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             originalPhone = currentUser.phone;
 
             fullNameInput.disabled = false;
-            userEmailInput.disabled = false; // เปิดให้แก้ Email
+            userEmailInput.disabled = false;
             userPhoneInput.disabled = false;
 
             toggleEditInfoBtn.textContent = 'Save Changes';
@@ -260,7 +239,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // 2.เปลี่ยนรหัสผ่าน
     passwordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const currentPass = document.getElementById('current-password').value;
@@ -300,7 +278,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // 3.ประวัติการจอง
     async function loadBookingHistory() {
         try {
             const response = await fetch(`${API_BASE}getUserBookings.php`);
@@ -318,10 +295,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // เพิ่ม console.log เพื่อดูข้อมูลที่ได้รับ
     function renderBookings(data) {
-        console.log('Booking data:', data); // ดูข้อมูลที่ได้รับ
-
         bookingTableBody.innerHTML = '';
         if (data.length === 0) {
             bookingTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">ไม่มีประวัติการจอง</td></tr>';
@@ -329,72 +303,53 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         data.forEach(booking => {
-            console.log('Booking item:', booking); // ดูแต่ละรายการ
-
             const row = bookingTableBody.insertRow();
-
-            // ลองหาชื่อ field ที่ถูกต้อง
             const statusId = parseInt(
                 booking.status_id ||
                 booking.booking_status_id ||
                 booking.status ||
                 1
             );
-
-            console.log('Status ID:', statusId); // ดูว่า statusId เป็นเท่าไหร่
-
-            // แปลง status_id เป็นชื่อสถานะ
-            let statusName = 'จองสำเร็จ';
-            let statusClass = 'success';
+            let statusName = 'ไม่ทราบสถานะ';
+            let statusClass = 'status-default';
 
             switch (statusId) {
                 case 1:
                     statusName = 'จองสำเร็จ';
-                    statusClass = 'success';
+                    statusClass = 'status-success';
                     break;
                 case 2:
-                    statusName = 'ยกเลิกแล้ว';
-                    statusClass = 'cancelled';
+                    statusName = 'ยกเลิกการจอง';
+                    statusClass = 'status-cancelled';
                     break;
                 case 3:
-                    statusName = 'รอยืนยันการชำระเงิน';
-                    statusClass = 'pending';
+                    statusName = 'รออนุมัติการย้ายห้อง';
+                    statusClass = 'warning';
                     break;
-                default:
-                    statusName = booking.status_name || 'ไม่ทราบสถานะ';
-                    statusClass = 'default';
+                case 4:
+                    statusName = 'ถูกย้ายห้อง';
+                    statusClass = 'info';
+                    break;
             }
 
-            // ตรวจสอบว่าเวลาผ่านไปแล้วหรือยัง
-            const [startTime] = booking.time.split(' - '); // ดึงเวลาเริ่มต้น เช่น "10:00"
-
-            // แปลงวันที่และเวลาเป็น timestamp เพื่อเปรียบเทียบ
-            // รูปแบบ: "03/01/2026" + " " + "10:00"
+            const [startTime] = booking.time.split(' - ');
             const [day, month, year] = booking.date.split('/');
             const bookingDateTimeStr = `${year}-${month}-${day} ${startTime}:00`;
             const bookingDateTime = new Date(bookingDateTimeStr);
             const now = new Date();
 
-            console.log('Booking DateTime String:', bookingDateTimeStr);
-            console.log('Booking DateTime:', bookingDateTime);
-            console.log('Current DateTime:', now);
-            console.log('Is Future:', bookingDateTime > now);
-
-            // อนุญาตให้ยกเลิกได้เฉพาะ: สถานะ = จองสำเร็จ (1) และเวลายังไม่ผ่าน
             const canCancel = statusId === 1 && bookingDateTime > now;
-
-            console.log('Booking:', booking.date, booking.time, 'Status:', statusId, 'Can cancel:', canCancel);
 
             row.innerHTML = `
             <td data-label="ห้อง">${booking.room}</td>
             <td data-label="วันที่">${booking.date}</td>
             <td data-label="เวลา">${booking.time}</td>
-            <td data-label="สถานะ"><span class="status status-${statusClass}">${statusName}</span></td>
+            <td data-label="สถานะ"><span class="status ${statusClass}">${statusName}</span></td>
             <td data-label="ดูรายละเอียด/ยกเลิก" style="white-space: nowrap;">
                 <button class="view-details-btn" data-id="${booking.id}">รายละเอียด</button>
                 ${canCancel ? `<button class="btn secondary-btn cancel-booking-btn" data-id="${booking.id}">ยกเลิก</button>` : ''}
             </td>
-        `;
+            `;
         });
 
         document.querySelectorAll('.view-details-btn').forEach(btn => {
@@ -403,16 +358,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelectorAll('.cancel-booking-btn').forEach(btn => {
             btn.addEventListener('click', handleCancelBooking);
         });
-    }
-
-    function getStatusText(status) {
-        const statusMap = {
-            'pending': 'รอดำเนินการ',
-            'confirmed': 'ยืนยันแล้ว',
-            'completed': 'เสร็จสิ้น',
-            'cancelled': 'ยกเลิกแล้ว'
-        };
-        return (statusMap[status] || status).toUpperCase();
     }
 
     // ฟังก์ชันกรอง
@@ -437,8 +382,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert(`รายละเอียดการจอง:\n\nห้อง: ${booking.room}\nวันที่: ${booking.date}\nเวลา: ${booking.time}\nหัวข้อการประชุม: ${booking.purpose}\nจำนวนคน: ${booking.attendees} คน`);
         }
     }
-
-
 
     // ยกเลิกการจอง
     async function handleCancelBooking(event) {

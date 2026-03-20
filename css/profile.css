@@ -230,11 +230,11 @@ input[disabled] {
 
 /* สถานะ */
 .status {
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
     display: inline-block;
-    font-size: 0.85em;
 }
 
 /* สถานะการจอง - ตาม booking_status table */
@@ -262,13 +262,6 @@ input[disabled] {
     color: #856404;
 }
 
-.status {
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
-}
-
 .status-success {
     background-color: #d4edda;
     color: #155724;
@@ -289,8 +282,16 @@ input[disabled] {
     color: #383d41;
 }
 
+.warning {
+    background-color: #fff3cd !important;
+    color: #856404 !important;
+}
 
-/* Legacy status classes (สำหรับ backward compatibility) */
+.info {
+    background-color: #cce5ff !important;
+    color: #004085 !important;
+}
+
 .completed {
     background-color: #d4edda;
     color: #155724;

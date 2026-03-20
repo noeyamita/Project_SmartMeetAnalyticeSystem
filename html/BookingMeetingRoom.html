@@ -84,6 +84,22 @@
             </div>
         </div>
     </div>
+    <div id="altRoomModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="color: #667eea;">ค้นหาห้องทดแทนให้การจองที่ถูกย้าย</h3>
+                <p class="muted">กรุณาเลือก 1 ใน 5 ห้องว่างด้านล่าง ที่รองรับจำนวนคนและอุปกรณ์ได้</p>
+            </div>
+            <div class="modal-body" id="altRoomList">
+                <div class="loading">กำลังค้นหาห้องว่างที่เหมาะสม...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="skipMoveRoom()">ข้าม (ปล่อยให้ถูกยกเลิกไป)</button>
+                <button class="btn primary" id="confirmMoveBtn" onclick="confirmMoveRoom()"
+                    disabled>ยืนยันการย้ายไปห้องนี้</button>
+            </div>
+        </div>
+    </div>
 
 
     <script>
