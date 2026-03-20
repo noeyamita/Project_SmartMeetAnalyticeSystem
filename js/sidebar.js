@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       const res2 = await fetch(`/src/api/get_role_permissions.php?action=get_role_detail&role_id=${roleId}`);
       const data2 = await res2.json();
       if (data2.success) {
-        allowedPermissions = data2.data.permissions.map(p => p.permission_name);
+        allowedPermissions = data2.data.permissions.map(p => p.permission_name.trim());
       }
     }
   } catch (e) {
@@ -36,6 +36,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     useFallback(userRole);
     return;
   }
+
+  console.log("สิทธิ์ที่ดึงมาจาก DB:", allowedPermissions);
 
   document.querySelectorAll(".nav-item").forEach((item) => {
     const dataPage = item.getAttribute("data-page");
@@ -101,6 +103,7 @@ function setActiveMenu() {
 
   let currentFile = currentPath.split("/").pop().toLowerCase();
   let pageIdentifier = currentFile.split(".")[0];
+  pageIdentifier = pageIdentifier.replace(/-/g, "_");
 
   if (pageIdentifier.includes("bookingmeetingroom")) pageIdentifier = "booking";
   if (pageIdentifier === "") pageIdentifier = "booking";
