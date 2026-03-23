@@ -330,6 +330,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     statusName = 'ถูกย้ายห้อง';
                     statusClass = 'info';
                     break;
+                case 5:
+                    statusName = 'คำขอถูกปฏิเสธ';
+                    statusClass = 'rejected';
+                    break;
             }
 
             const [startTime] = booking.time.split(' - ');

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>จัดการคำขอใช้ห้องแทน</title>
+    <link rel="stylesheet" href="css/BookingMeetingRoom.css">
+    <style>
+        .request-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .req-info h4 {
+            margin: 0 0 10px 0;
+            color: #f59e0b;
+        }
+
+        .req-detail {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .req-owner {
+            background: #fef2f2;
+            color: #ef4444;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .req-actions {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <iframe src="sidebar.html?page=room_requests" class="sidebar-frame"></iframe>
+
+    <main class="main-content">
+        <div class="container">
+            <header>
+                <h1>คำขอใช้ห้องแทน (จาก Executive)</h1>
+                <p class="muted">จัดการคำขออนุมัติการใช้ห้องที่มีผู้จองอยู่แล้ว</p>
+            </header>
+
+            <div id="alertBox" class="alert"></div>
+
+            <section class="card" id="requestsContainer">
+                <div class="loading">กำลังโหลดข้อมูลคำขอ...</div>
+            </section>
+        </div>
+    </main>
+
+    <div id="altRoomModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="color: #667eea;">ค้นหาห้องทดแทนให้ผู้ที่ถูกแย่งห้อง</h3>
+                <p class="muted">เนื่องจากคุณอนุมัติให้ Executive ใช้ห้องนี้ กรุณาเลือกห้องว่างใหม่ให้เจ้าของเดิม</p>
+            </div>
+            <div class="modal-body" id="altRoomList">
+                <div class="loading">กำลังค้นหาห้องว่างที่เหมาะสม...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="skipMoveRoom()">ข้าม (ปล่อยให้ถูกยกเลิกไป)</button>
+                <button class="btn primary" id="confirmMoveBtn" onclick="confirmMoveRoom()"
+                    disabled>ยืนยันการย้ายไปห้องนี้</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/room-requests.js"></script>
+</body>
+
+</html>

@@ -53,6 +53,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   setActiveMenu();
   loadUnreadBadge();
   setInterval(loadUnreadBadge, 15000);
+
+  loadRoomRequestBadge();
+  setInterval(loadRoomRequestBadge, 15000);
 });
 
 async function loadUnreadBadge() {
@@ -115,4 +118,34 @@ function setActiveMenu() {
       item.classList.add("active");
     }
   });
+}
+
+async function loadRoomRequestBadge() {
+  const reqItem = document.querySelector('.nav-item[data-page="room_requests"]');
+
+  if (!reqItem || reqItem.style.display === 'none') return;
+
+  try {
+    const res = await fetch('/src/api/getPendingRequestCount.php');
+    const result = await res.json();
+    if (result.status === 'success') {
+      updateRoomRequestBadge(result.count);
+    }
+  } catch (e) {
+    console.error("Error loading room request badge:", e);
+  }
+}
+
+function updateRoomRequestBadge(count) {
+  const reqItem = document.querySelector('.nav-item[data-page="room_requests"]');
+  if (!reqItem) return;
+  reqItem.querySelector('.badge')?.remove();
+
+  if (count > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.style.backgroundColor = '#ef4444';
+    badge.textContent = count > 99 ? '99+' : count;
+    reqItem.appendChild(badge);
+  }
 }

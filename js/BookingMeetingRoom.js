@@ -261,11 +261,10 @@ async function confirmBooking() {
         }
 
         if (result.status === 'success') {
-            showAlert('จองห้องประชุมสำเร็จ', 'success', 8000);
+            showAlert(result.message, 'success', 8000);
             closeModal();
             searchRooms();
 
-            //เปิดหน้าต่างย้ายห้องอัตโนมัติ
             if (result.displaced_bookings && result.displaced_bookings.length > 0) {
                 displacedBookingsQueue = result.displaced_bookings;
                 processNextDisplacedBooking();

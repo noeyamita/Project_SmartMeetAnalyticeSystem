@@ -306,3 +306,8 @@ input[disabled] {
     background-color: #f8d7da;
     color: #721c24;
 }
+
+.rejected {
+    background-color: #e9ecef !important;
+    color: #495057 !important;
+}
