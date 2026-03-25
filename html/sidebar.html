@@ -1,79 +1,73 @@
 <!DOCTYPE html>
-
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <title>Sidebar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/sidebar.css">
-
+</head>
 <body>
     <div class="sidebar">
         <div class="sidebar-header">
-            <i class="fas fa-bars"></i>
-            <span id="menuTitle">Menu</span>
+            <i class="fa-solid fa-bars"></i>
+            <span id="menuTitle">เมนูหลัก</span>
         </div>
 
         <nav class="sidebar-nav">
-            <a href="BookingMeetingRoom.html" target="_parent" class="nav-item" data-page="booking"
-                data-roles="Admin,Executive,Normal">
-                <i class="fas fa-calendar-alt"></i>
+            <a href="BookingMeetingRoom.html" target="_parent" class="nav-item" data-page="booking" data-roles="Admin,Executive,Normal">
+                <i class="fa-solid fa-calendar-check"></i>
                 <span>การจองห้องประชุม</span>
             </a>
 
-            <a href="profile.html" target="_parent" class="nav-item" data-page="profile"
-                data-roles="Admin,Executive,Normal">
-                <i class="fas fa-user"></i>
+            <a href="profile.html" target="_parent" class="nav-item" data-page="profile" data-roles="Admin,Executive,Normal">
+                <i class="fa-solid fa-circle-user"></i>
                 <span>โปรไฟล์</span>
             </a>
 
-            <a href="notifications.html" target="_parent" class="nav-item" data-page="notifications"
-                data-roles="Admin,Executive,Normal">
-                <i class="fas fa-bell"></i>
+            <a href="notifications.html" target="_parent" class="nav-item" data-page="notifications" data-roles="Admin,Executive,Normal">
+                <i class="fa-solid fa-bell"></i>
                 <span>การแจ้งเตือน</span>
-                <span class="badge">1</span>
-            </a>
+                </a>
 
             <a href="room-requests.html" target="_parent" class="nav-item" data-page="room_requests" data-roles="Admin">
-                <i class="fas fa-clipboard-list"></i>
+                <i class="fa-solid fa-clipboard-question"></i>
                 <span>คำขอใช้ห้องแทน</span>
             </a>
 
             <a href="permissions.html" target="_parent" class="nav-item" data-page="permissions" data-roles="Admin">
-                <i class="fas fa-key"></i>
+                <i class="fa-solid fa-key"></i>
                 <span>จัดการสิทธิ์</span>
             </a>
 
             <a href="user-roles.html" target="_parent" class="nav-item" data-page="user_roles" data-roles="Admin">
-                <i class="fas fa-user-shield"></i>
+                <i class="fa-solid fa-user-shield"></i>
                 <span>จัดการสิทธิ์ผู้ใช้</span>
             </a>
 
             <a href="banned_users.html" target="_parent" class="nav-item" data-page="banned_users" data-roles="Admin">
-                <i class="fas fa-user-slash"></i>
+                <i class="fa-solid fa-user-slash"></i>
                 <span>แบน/ปลดแบน Users</span>
             </a>
 
-            <a href="room-management.html" target="_parent" class="nav-item" data-page="room_management"
-                data-roles="Admin">
+            <a href="room-management.html" target="_parent" class="nav-item" data-page="room_management" data-roles="Admin">
                 <i class="fa-solid fa-screwdriver-wrench"></i>
                 <span>จัดการห้องประชุม</span>
             </a>
 
-            <a href="Dashboard.html" target="_parent" class="nav-item" data-page="dashboard"
-                data-roles="Admin,Executive,Normal">
-                <i class="fas fa-chart-line"></i>
+            <a href="Dashboard.html" target="_parent" class="nav-item" data-page="dashboard" data-roles="Admin,Executive,Normal">
+                <i class="fa-solid fa-chart-pie"></i>
                 <span>Dashboard</span>
             </a>
         </nav>
 
         <div class="sidebar-footer">
             <a href="login.html" target="_parent" class="logout-btn">
-                <i class="fas fa-sign-out-alt"></i>
+                <i class="fa-solid fa-right-from-bracket"></i>
                 <span>ออกจากระบบ</span>
             </a>
         </div>
     </div>
-    <script src="/js/sidebar.js"></script>
 
+    <script src="js/sidebar.js"></script>
 </body>
-
 </html>

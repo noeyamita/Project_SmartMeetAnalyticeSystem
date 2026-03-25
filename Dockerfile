@@ -33,7 +33,7 @@ RUN echo " * * * * * /usr/local/bin/php /var/www/html/src/api/send_reminders.php
 
 # copy entrypoint
 COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+RUN sed -i 's/\r//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 
 # fix permission
 RUN chown -R www-data:www-data /var/www/html

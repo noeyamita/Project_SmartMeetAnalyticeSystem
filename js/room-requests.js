@@ -8,7 +8,8 @@ async function loadRequests() {
 
         if (result.status === 'success') {
             if (result.data.length === 0) {
-                container.innerHTML = '<div class="empty-state">ไม่มีคำขอรอดำเนินการ</div>';
+                // เปลี่ยน Emoji เป็น Icon fa-inbox
+                container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i> ไม่มีคำขอรอดำเนินการ</div>';
                 return;
             }
 
@@ -17,24 +18,24 @@ async function loadRequests() {
                 const startTime = req.start_time.substring(0, 5);
                 const endTime = req.end_time.substring(0, 5);
                 const ownersHtml = req.current_owners.length > 0
-                    ? `<div class="req-owner">ผู้ที่ใช้ห้องนี้อยู่เดิม: ${req.current_owners.join(', ')}</div>`
-                    : `<div class="req-owner" style="background:#ecfdf5; color:#10b981;">ห้องนี้ว่างแล้ว (ผู้จองเดิมอาจยกเลิกไป)</div>`;
+                    ? `<div class="req-owner"><i class="fa-solid fa-user-clock"></i> ผู้ที่ใช้ห้องนี้อยู่เดิม: ${req.current_owners.join(', ')}</div>`
+                    : `<div class="req-owner" style="background:#ecfdf5; color:#10b981;"><i class="fa-solid fa-circle-check"></i> ห้องนี้ว่างแล้ว (ผู้จองเดิมอาจยกเลิกไป)</div>`;
 
                 html += `
                     <div class="request-card">
                         <div class="req-info">
-                            <h4>ผู้ขอ: ${req.fname} ${req.lname} (Executive)</h4>
-                            <div class="req-detail"><strong>ห้อง:</strong> ${req.room_name}</div>
-                            <div class="req-detail"><strong>วัน/เวลา:</strong> ${req.booking_date} | ${startTime} - ${endTime}</div>
-                            <div class="req-detail"><strong>เหตุผล:</strong> ${req.purpose} (${req.attendees_count} คน)</div>
+                            <h4><i class="fa-solid fa-user-tie"></i> ผู้ขอ: ${req.fname} ${req.lname} (Executive)</h4>
+                            <div class="req-detail"><i class="fa-solid fa-door-open"></i> <strong>ห้อง:</strong> ${req.room_name}</div>
+                            <div class="req-detail"><i class="fa-solid fa-calendar-day"></i> <strong>วัน/เวลา:</strong> ${req.booking_date} | ${startTime} - ${endTime}</div>
+                            <div class="req-detail"><i class="fa-solid fa-comment-dots"></i> <strong>เหตุผล:</strong> ${req.purpose} (${req.attendees_count} คน)</div>
                             ${ownersHtml}
                         </div>
                         <div class="req-actions">
                             <button class="btn primary" style="background: #10b981;" onclick="manageRequest(${req.booking_id}, 'approve')">
-                                <i class="fas fa-check" style="margin-right: 5px;"></i> อนุมัติ
+                                <i class="fa-solid fa-check"></i> อนุมัติ
                             </button>
                             <button class="btn danger" style="background: #ef4444;" onclick="manageRequest(${req.booking_id}, 'reject')">
-                                <i class="fas fa-times" style="margin-right: 5px;"></i> ปฏิเสธ
+                                <i class="fa-solid fa-xmark"></i> ปฏิเสธ
                             </button>
                         </div>
                     </div>
@@ -43,7 +44,7 @@ async function loadRequests() {
             container.innerHTML = html;
         }
     } catch (e) {
-        container.innerHTML = '<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+        container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i> เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
     }
 }
 
@@ -89,7 +90,8 @@ async function processNextDisplacedBooking() {
     selectedAltRoomId = null;
 
     document.getElementById('altRoomModal').classList.add('active');
-    document.getElementById('altRoomList').innerHTML = '<div class="loading">กำลังค้นหาห้องว่าง...</div>';
+    // เพิ่ม Icon fa-spinner ให้กับ Loading state
+    document.getElementById('altRoomList').innerHTML = '<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังค้นหาห้องว่าง...</div>';
     document.getElementById('confirmMoveBtn').disabled = true;
 
     try {
@@ -98,27 +100,28 @@ async function processNextDisplacedBooking() {
 
         if (result.status === 'success' && result.data.length > 0) {
             let html = `<div style="margin-bottom: 15px; padding: 10px; background: #fffbeb; border-radius: 8px;">
-                            <strong style="color:#d97706;">ต้องการหาห้องแทนให้เจ้าของเดิม (ID: ${booking.booking_id})</strong><br>
-                            รองรับผู้เข้าร่วมเดิม: ${booking.attendees_count} คน
+                            <strong style="color:#d97706;"><i class="fa-solid fa-circle-info"></i> ต้องการหาห้องแทนให้เจ้าของเดิม (ID: ${booking.booking_id})</strong><br>
+                            <i class="fa-solid fa-users-viewfinder"></i> รองรับผู้เข้าร่วมเดิม: ${booking.attendees_count} คน
                         </div>`;
             html += '<div class="equipment-list" style="display:flex; flex-direction:column; gap:10px;">';
             result.data.forEach((room) => {
                 html += `
-                <div style="padding:10px; border:1px solid #ddd; border-radius:6px;">
+                <div style="padding:10px; border:1px solid #ddd; border-radius:6px; display: flex; align-items: center; gap: 10px;">
                     <input type="radio" name="alt_room" value="${room.room_id}" id="alt_room_${room.room_id}" onchange="selectAltRoom(${room.room_id})">
-                    <label for="alt_room_${room.room_id}">
-                        <strong>${room.room_name}</strong>
-                        <span style="font-size:13px; color:#666; margin-left:10px;">(จุได้ ${room.capacity} คน, ชั้น ${room.floor_number || '-'})</span>
+                    <label for="alt_room_${room.room_id}" style="cursor: pointer; flex-grow: 1;">
+                        <i class="fa-solid fa-door-closed"></i> <strong>${room.room_name}</strong>
+                        <span style="font-size:13px; color:#666; margin-left:10px;"><i class="fa-solid fa-people-group"></i> จุได้ ${room.capacity} คน, ชั้น ${room.floor_number || '-'}</span>
                     </label>
                 </div>`;
             });
             html += '</div>';
             document.getElementById('altRoomList').innerHTML = html;
         } else {
-            document.getElementById('altRoomList').innerHTML = '<div class="empty-state" style="color:red;">❌ ไม่พบห้องว่างอื่นๆ ที่รองรับคนกลุ่มนี้ได้แล้ว</div>';
+            // เปลี่ยน ❌ เป็น fa-circle-exclamation
+            document.getElementById('altRoomList').innerHTML = '<div class="empty-state" style="color:#ef4444;"><i class="fa-solid fa-circle-exclamation"></i> ไม่พบห้องว่างอื่นๆ ที่รองรับคนกลุ่มนี้ได้แล้ว</div>';
         }
     } catch (e) {
-        document.getElementById('altRoomList').innerHTML = '<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+        document.getElementById('altRoomList').innerHTML = '<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i> เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
     }
 }
 
@@ -131,7 +134,7 @@ async function confirmMoveRoom() {
     if (!selectedAltRoomId) return;
     const confirmBtn = document.getElementById('confirmMoveBtn');
     confirmBtn.disabled = true;
-    confirmBtn.textContent = "กำลังย้ายห้อง...";
+    confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังย้ายห้อง...';
 
     try {
         const response = await fetch('src/api/moveBooking.php', {
@@ -150,7 +153,7 @@ async function confirmMoveRoom() {
         alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
     }
 
-    confirmBtn.textContent = "ยืนยันการย้ายไปห้องนี้";
+    confirmBtn.innerHTML = '<i class="fa-solid fa-check"></i> ยืนยันการย้ายไปห้องนี้';
     document.getElementById('altRoomModal').classList.remove('active');
 
     setTimeout(processNextDisplacedBooking, 500);

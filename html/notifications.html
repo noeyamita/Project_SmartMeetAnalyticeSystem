@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>การแจ้งเตือน</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/Dashboard.css">
     <link rel="stylesheet" href="css/notifications.css">
 </head>
@@ -16,24 +16,36 @@
         <div class="container">
             <div class="notifications-header">
                 <div>
-                    <h1>🔔 การแจ้งเตือน</h1>
+                    <h1><i class="fa-solid fa-bell"></i> การแจ้งเตือน</h1>
                     <p class="muted" id="unreadCount">กำลังโหลด...</p>
                 </div>
-                <button class="mark-all-btn" onclick="markAllRead()">✅ อ่านทั้งหมด</button>
+                <button class="mark-all-btn" onclick="markAllRead()">
+                    <i class="fa-solid fa-check-double"></i> อ่านทั้งหมด
+                </button>
             </div>
 
-            <!-- Filter Tabs -->
             <div class="filter-tabs">
-                <button class="filter-tab active" onclick="filterNotifications('all', this)">ทั้งหมด</button>
-                <button class="filter-tab" onclick="filterNotifications('room_moved', this)">🔄 ย้ายห้อง</button>
-                <button class="filter-tab" onclick="filterNotifications('reminder_24h', this)">⏰ 24 ชั่วโมง</button>
-                <button class="filter-tab" onclick="filterNotifications('reminder_12h', this)">⏰ 12 ชั่วโมง</button>
-                <button class="filter-tab" onclick="filterNotifications('reminder_2h', this)">🔔 2 ชั่วโมง</button>
+                <button class="filter-tab active" onclick="filterNotifications('all', this)">
+                    <i class="fa-solid fa-list-ul"></i> ทั้งหมด
+                </button>
+                <button class="filter-tab" onclick="filterNotifications('room_moved', this)">
+                    <i class="fa-solid fa-arrows-rotate"></i> ย้ายห้อง
+                </button>
+                <button class="filter-tab" onclick="filterNotifications('reminder_24h', this)">
+                    <i class="fa-solid fa-clock"></i> 24 ชั่วโมง
+                </button>
+                <button class="filter-tab" onclick="filterNotifications('reminder_12h', this)">
+                    <i class="fa-regular fa-clock"></i> 12 ชั่วโมง
+                </button>
+                <button class="filter-tab" onclick="filterNotifications('reminder_2h', this)">
+                    <i class="fa-solid fa-bell-concierge"></i> 2 ชั่วโมง
+                </button>
             </div>
 
             <div class="notification-list" id="notificationList">
                 <div class="empty-state">
-                    <div class="icon">⏳</div>กำลังโหลด...
+                    <div class="icon"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+                    กำลังโหลด...
                 </div>
             </div>
         </div>
@@ -41,5 +53,4 @@
 
     <script src="js/notifications.js"></script>
 </body>
-
 </html>

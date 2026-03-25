@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - ระบบจองห้องประชุม</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/Dashboard.css">
 </head>
 
@@ -15,40 +16,49 @@
         <div class="container">
             <header class="page-header">
                 <div>
-                    <h1>Dashboard</h1>
+                    <h1><i class="fa-solid fa-chart-line"></i> Dashboard</h1>
                     <p class="muted">ภาพรวมการใช้งานระบบจองห้องประชุม</p>
                 </div>
                 <div class="tabs-container">
-                    <button class="tab-btn active" onclick="switchTab('user')" id="userTabBtn">Dashboard ผู้จอง</button>
-                    <button class="tab-btn" onclick="switchTab('admin')" id="adminTabBtn">Dashboard Admin</button>
+                    <button class="tab-btn active" onclick="switchTab('user')" id="userTabBtn">
+                        <i class="fa-solid fa-user"></i> Dashboard ผู้จอง
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('admin')" id="adminTabBtn">
+                        <i class="fa-solid fa-user-shield"></i> Dashboard Admin
+                    </button>
                 </div>
             </header>
 
             <div id="alertBox" class="alert"></div>
 
             <div id="userTab" class="tab-content active">
-
                 <div class="overview-grid">
                     <div class="stat-card">
                         <div class="stat-info">
                             <span class="stat-title">จองทั้งหมด (ปีนี้)</span>
                             <h3 class="stat-value" id="userTotalBookings">-</h3>
                         </div>
-                        <div class="stat-icon-wrapper"><span class="stat-icon">📋</span></div>
+                        <div class="stat-icon-wrapper">
+                            <span class="stat-icon"><i class="fa-solid fa-clipboard-list"></i></span>
+                        </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-info">
                             <span class="stat-title">เสร็จสมบูรณ์</span>
                             <h3 class="stat-value" id="userCompletedBookings">-</h3>
                         </div>
-                        <div class="stat-icon-wrapper success"><span class="stat-icon">✅</span></div>
+                        <div class="stat-icon-wrapper success">
+                            <span class="stat-icon"><i class="fa-solid fa-circle-check"></i></span>
+                        </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-info">
                             <span class="stat-title">ยกเลิกการจอง</span>
                             <h3 class="stat-value" id="userCancelledBookings">-</h3>
                         </div>
-                        <div class="stat-icon-wrapper danger"><span class="stat-icon">❌</span></div>
+                        <div class="stat-icon-wrapper danger">
+                            <span class="stat-icon"><i class="fa-solid fa-circle-xmark"></i></span>
+                        </div>
                     </div>
                 </div>
 
@@ -56,19 +66,19 @@
                     <div class="left-col">
                         <section class="card">
                             <div class="card-header">
-                                <h2>📅 การจองที่กำลังจะมาถึง</h2>
+                                <h2><i class="fa-solid fa-calendar-days"></i> การจองที่กำลังจะมาถึง</h2>
                             </div>
                             <div class="upcoming-bookings-list" id="upcomingBookingsList">
-                                <div class="loading">กำลังโหลดข้อมูล...</div>
+                                <div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
                             </div>
                         </section>
 
                         <section class="card">
                             <div class="card-header">
-                                <h2>⭐ ห้องที่คุณจองบ่อยที่สุด</h2>
+                                <h2><i class="fa-solid fa-star"></i> ห้องที่คุณจองบ่อยที่สุด</h2>
                             </div>
                             <div class="popular-rooms-list" id="userPopularRoomsList">
-                                <div class="loading">กำลังโหลดข้อมูล...</div>
+                                <div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
                             </div>
                         </section>
                     </div>
@@ -76,11 +86,11 @@
                     <div class="right-col">
                         <section class="card full-height">
                             <div class="card-header flex-between">
-                                <h2>🟢 สถานะห้องประชุม Real-time</h2>
+                                <h2><i class="fa-solid fa-signal"></i> สถานะห้องประชุม Real-time</h2>
                                 <span class="real-time-badge"><span class="pulse-dot"></span>อัพเดทตลอดเวลา</span>
                             </div>
                             <div class="rooms-status-grid" id="roomsStatusGrid">
-                                <div class="loading">กำลังโหลดข้อมูล...</div>
+                                <div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
                             </div>
                         </section>
                     </div>
@@ -88,36 +98,42 @@
             </div>
 
             <div id="adminTab" class="tab-content">
-
                 <div class="overview-grid">
                     <div class="stat-card">
                         <div class="stat-info">
                             <span class="stat-title">การจองวันนี้</span>
                             <h3 class="stat-value" id="todayBookings">-</h3>
                         </div>
-                        <div class="stat-icon-wrapper"><span class="stat-icon">📅</span></div>
+                        <div class="stat-icon-wrapper">
+                            <span class="stat-icon"><i class="fa-solid fa-calendar-day"></i></span>
+                        </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-info">
                             <span class="stat-title">การจองสัปดาห์นี้</span>
                             <h3 class="stat-value" id="weekBookings">-</h3>
                         </div>
-                        <div class="stat-icon-wrapper"><span class="stat-icon">📆</span></div>
+                        <div class="stat-icon-wrapper">
+                            <span class="stat-icon"><i class="fa-solid fa-calendar-week"></i></span>
+                        </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-info">
                             <span class="stat-title">การจองเดือนนี้</span>
                             <h3 class="stat-value" id="monthBookings">-</h3>
                         </div>
-                        <div class="stat-icon-wrapper"><span class="stat-icon">📊</span></div>
+                        <div class="stat-icon-wrapper">
+                            <span class="stat-icon"><i class="fa-solid fa-chart-simple"></i></span>
+                        </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-info">
                             <span class="stat-title">ยกเลิก/ย้ายห้อง (เดือนนี้)</span>
-                            <h3 class="stat-value"><span id="cancelledBookings">-</span> / <span id="roomChanges"
-                                    style="font-size: 18px; color:#7f8c8d;">-</span></h3>
+                            <h3 class="stat-value"><span id="cancelledBookings">-</span> / <span id="roomChanges" style="font-size: 18px; color:#7f8c8d;">-</span></h3>
                         </div>
-                        <div class="stat-icon-wrapper warning"><span class="stat-icon">🔄</span></div>
+                        <div class="stat-icon-wrapper warning">
+                            <span class="stat-icon"><i class="fa-solid fa-arrows-rotate"></i></span>
+                        </div>
                     </div>
                 </div>
 
@@ -125,25 +141,25 @@
                     <div class="left-col">
                         <section class="card">
                             <div class="card-header">
-                                <h2>🏆 ห้องยอดนิยม</h2>
+                                <h2><i class="fa-solid fa-trophy"></i> ห้องยอดนิยม</h2>
                             </div>
                             <div class="popular-rooms-list" id="adminPopularRoomsList">
-                                <div class="loading">กำลังโหลดข้อมูล...</div>
+                                <div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
                             </div>
                         </section>
 
                         <section class="card">
                             <div class="card-header">
-                                <h2>⏰ เวลาที่จองเยอะสุด</h2>
+                                <h2><i class="fa-solid fa-clock"></i> เวลาที่จองเยอะสุด</h2>
                             </div>
                             <div class="peak-times-list" id="peakTimesList">
-                                <div class="loading">กำลังโหลดข้อมูล...</div>
+                                <div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
                             </div>
                         </section>
 
                         <section class="card">
                             <div class="card-header">
-                                <h2>สัดส่วนสถานะการจอง (เดือนนี้)</h2>
+                                <h2><i class="fa-solid fa-chart-pie"></i> สัดส่วนสถานะการจอง (เดือนนี้)</h2>
                             </div>
                             <div class="chart-container-donut">
                                 <canvas id="statusDonutChart"></canvas>
@@ -154,7 +170,7 @@
                     <div class="right-col">
                         <section class="card full-height">
                             <div class="card-header flex-between">
-                                <h2>📈 กราฟการจองห้องประชุมในเดือนนี้</h2>
+                                <h2><i class="fa-solid fa-chart-area"></i> กราฟการจองห้องประชุมในเดือนนี้</h2>
                             </div>
                             <div class="chart-container">
                                 <canvas id="monthlyChart"></canvas>
@@ -163,12 +179,10 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/Dashboard.js"></script>
 </body>
-
 </html>

@@ -70,15 +70,16 @@ async function loadUserDashboard() {
     ]);
 }
 
-// อัปเดตฟังก์ชันนี้ใน Dashboard.js
 async function loadRoomStatus() {
     try {
         const response = await fetch(`${API_BASE}getQuickBookRooms.php`);
         const result = await response.json();
         const container = document.getElementById('roomsStatusGrid');
         const cardHeader = container.parentElement.querySelector('.card-header h2');
+        
         if (cardHeader) {
-            cardHeader.innerHTML = 'จองห้องประชุมในรายการโปรด';
+            // เปลี่ยน Emoji 🟢 เป็น Icon fa-signal (หรือ fa-bolt สำหรับ Quick Book)
+            cardHeader.innerHTML = '<i class="fa-solid fa-bolt"></i> จองห้องประชุมในรายการโปรด';
         }
 
         if (result.status === 'success' && result.data.length > 0) {
@@ -94,7 +95,7 @@ async function loadRoomStatus() {
                             <div class="room-status-name">${room.room_name}</div>
                         </div>
                         <div class="room-status-info" style="margin-bottom: 12px; font-weight: 500;">
-                            🕒 เช็คเวลา: ${room.start_time} - ${room.end_time}
+                            <i class="fa-regular fa-clock"></i> เช็คเวลา: ${room.start_time} - ${room.end_time}
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span class="room-status-label ${statusClass}">${statusText}</span>
@@ -103,7 +104,7 @@ async function loadRoomStatus() {
                                 <button class="btn primary" 
                                     style="padding: 6px 12px; font-size: 13px;" 
                                     onclick="quickBookRoom('${room.room_id}', '${room.start_time}', '${room.end_time}')">
-                                    จองทันที
+                                    <i class="fa-solid fa-plus"></i> จองทันที
                                 </button>
                             ` : ''}
                         </div>
@@ -111,10 +112,10 @@ async function loadRoomStatus() {
                 `;
             }).join('');
         } else {
-            container.innerHTML = '<div class="empty-state">ไม่พบข้อมูลห้องประชุม</div>';
+            container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i> ไม่พบข้อมูลห้องประชุม</div>';
         }
     } catch (error) {
-        document.getElementById('roomsStatusGrid').innerHTML = '<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+        document.getElementById('roomsStatusGrid').innerHTML = '<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i> เกิดข้อผิดพลาด</div>';
     }
 }
 
@@ -145,7 +146,7 @@ async function loadUpcomingBookings() {
         if (result.status === 'success' && result.data.length > 0) {
             container.innerHTML = result.data.map(booking => `
                 <div class="upcoming-booking-item">
-                    <div class="room-rank">📅</div>
+                    <div class="room-rank"><i class="fa-solid fa-calendar-day" style="color: #667eea;"></i></div>
                     <div class="room-info">
                         <div class="booking-room">${booking.room_name}</div>
                         <div class="booking-date">${booking.booking_date_thai}</div>
@@ -154,7 +155,7 @@ async function loadUpcomingBookings() {
                 </div>
             `).join('');
         } else {
-            container.innerHTML = '<div class="empty-state">ไม่มีการจองที่กำลังจะมาถึง</div>';
+            container.innerHTML = '<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i> ไม่มีรายการจอง</div>';
         }
     } catch (error) {
         document.getElementById('upcomingBookingsList').innerHTML = '<div class="empty-state">เกิดข้อผิดพลาด</div>';
@@ -185,7 +186,7 @@ async function loadUserPopularRooms() {
                 `;
             }).join('');
         } else {
-            container.innerHTML = '<div class="empty-state">ยังไม่มีข้อมูลการจอง</div>';
+            container.innerHTML = '<div class="empty-state">ยังไม่มีข้อมูล</div>';
         }
     } catch (error) {
         document.getElementById('userPopularRoomsList').innerHTML = '<div class="empty-state">เกิดข้อผิดพลาด</div>';
@@ -213,13 +214,12 @@ async function loadAdminStats() {
 
             const monthTotal = parseInt(result.data.month_bookings) || 0;
             const cancelledTotal = parseInt(result.data.cancelled_bookings) || 0;
-            const completedTotal = Math.max(0, monthTotal - cancelledTotal); // คำนวณที่สำเร็จจริง
+            const completedTotal = Math.max(0, monthTotal - cancelledTotal);
 
             document.getElementById('monthBookings').textContent = monthTotal;
             document.getElementById('cancelledBookings').textContent = cancelledTotal;
             document.getElementById('roomChanges').textContent = result.data.room_changes || 0;
 
-            // นำข้อมูลไปวาดกราฟโดนัท
             renderDonutChart(completedTotal, cancelledTotal);
         }
     } catch (error) { }
@@ -235,10 +235,9 @@ async function loadPeakTimes() {
             container.innerHTML = result.data.map((time, index) => `
                 <div class="peak-time-item">
                     <div class="room-rank">${index + 1}</div>
-                    
                     <div class="room-info">
                         <div class="peak-time-label" style="font-weight: 600; color: #344767;">
-                            ${time.time_range}
+                            <i class="fa-regular fa-clock" style="margin-right: 5px; font-size: 12px;"></i> ${time.time_range}
                         </div>
                     </div>
                     <div class="peak-time-count">

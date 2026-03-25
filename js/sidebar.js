@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   const menuTitle = document.getElementById("menuTitle");
-  if (menuTitle) menuTitle.textContent = `Menu ${userRole}`;
+  if (menuTitle) menuTitle.textContent = `เมนู (${userRole})`;
 
   let allowedPermissions = [];
   try {
@@ -37,11 +37,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     return;
   }
 
-  console.log("สิทธิ์ที่ดึงมาจาก DB:", allowedPermissions);
-
+  // ตรวจสอบการแสดงผลเมนูตามสิทธิ์จาก DB
   document.querySelectorAll(".nav-item").forEach((item) => {
     const dataPage = item.getAttribute("data-page");
     if (!dataPage) return;
+    
     if (allowedPermissions.includes(dataPage)) {
       item.style.display = "flex";
       item.style.visibility = "visible";
@@ -51,39 +51,60 @@ document.addEventListener("DOMContentLoaded", async function () {
   });
 
   setActiveMenu();
+  
+  // โหลด Badge แจ้งเตือน
   loadUnreadBadge();
   setInterval(loadUnreadBadge, 15000);
 
+  // โหลด Badge คำขอใช้ห้อง
   loadRoomRequestBadge();
   setInterval(loadRoomRequestBadge, 15000);
 });
+
+// --- ฟังก์ชันจัดการ Badge (ใช้ร่วมกันเพื่อลดความซ้ำซ้อน) ---
+function updateBadge(selector, count, color = null) {
+  const item = document.querySelector(`.nav-item[data-page="${selector}"]`);
+  if (!item) return;
+
+  // ลบ Badge เก่าออกก่อน
+  item.querySelector('.badge')?.remove();
+
+  if (count > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'badge';
+    if (color) badge.style.backgroundColor = color;
+    badge.textContent = count > 99 ? '99+' : count;
+    item.appendChild(badge);
+  }
+}
 
 async function loadUnreadBadge() {
   try {
     const res = await fetch('/src/api/getnotifications.php');
     const result = await res.json();
     if (result.success) {
-      updateNotificationBadge(result.unread_count);
+      updateBadge('notifications', result.unread_count);
     }
   } catch (e) { }
 }
 
-function updateNotificationBadge(count) {
-  const notifItem = document.querySelector('.nav-item[data-page="notifications"]');
-  if (!notifItem) return;
+async function loadRoomRequestBadge() {
+  const reqItem = document.querySelector('.nav-item[data-page="room_requests"]');
+  if (!reqItem || reqItem.style.display === 'none') return;
 
-  notifItem.querySelector('.badge')?.remove();
-
-  if (count > 0) {
-    const badge = document.createElement('span');
-    badge.className = 'badge';
-    badge.textContent = count > 99 ? '99+' : count;
-    notifItem.appendChild(badge);
+  try {
+    const res = await fetch('/src/api/getPendingRequestCount.php');
+    const result = await res.json();
+    if (result.status === 'success') {
+      updateBadge('room_requests', result.count, '#ef4444');
+    }
+  } catch (e) {
+    console.error("Error loading room request badge:", e);
   }
 }
 
+// --- ฟังก์ชันอื่นๆ ---
 function useFallback(userRole) {
-  console.warn("Using fallback data-roles mode");
   document.querySelectorAll(".nav-item").forEach((item) => {
     const allowedRoles = item.getAttribute("data-roles");
     if (allowedRoles) {
@@ -93,7 +114,6 @@ function useFallback(userRole) {
     }
   });
   setActiveMenu();
-  loadUnreadBadge();
 }
 
 function setActiveMenu() {
@@ -104,48 +124,16 @@ function setActiveMenu() {
     currentPath = window.location.pathname;
   }
 
-  let currentFile = currentPath.split("/").pop().toLowerCase();
-  let pageIdentifier = currentFile.split(".")[0];
-  pageIdentifier = pageIdentifier.replace(/-/g, "_");
+  let currentFile = currentPath.split("/").pop().toLowerCase() || "bookingmeetingroom.html";
+  let pageIdentifier = currentFile.split(".")[0].replace(/-/g, "_");
 
+  // Mapping พิเศษสำหรับหน้าจอง
   if (pageIdentifier.includes("bookingmeetingroom")) pageIdentifier = "booking";
-  if (pageIdentifier === "") pageIdentifier = "booking";
 
   document.querySelectorAll(".nav-item").forEach((item) => {
     item.classList.remove("active");
-    const dataPage = item.getAttribute("data-page");
-    if (dataPage && pageIdentifier === dataPage) {
+    if (item.getAttribute("data-page") === pageIdentifier) {
       item.classList.add("active");
     }
   });
-}
-
-async function loadRoomRequestBadge() {
-  const reqItem = document.querySelector('.nav-item[data-page="room_requests"]');
-
-  if (!reqItem || reqItem.style.display === 'none') return;
-
-  try {
-    const res = await fetch('/src/api/getPendingRequestCount.php');
-    const result = await res.json();
-    if (result.status === 'success') {
-      updateRoomRequestBadge(result.count);
-    }
-  } catch (e) {
-    console.error("Error loading room request badge:", e);
-  }
-}
-
-function updateRoomRequestBadge(count) {
-  const reqItem = document.querySelector('.nav-item[data-page="room_requests"]');
-  if (!reqItem) return;
-  reqItem.querySelector('.badge')?.remove();
-
-  if (count > 0) {
-    const badge = document.createElement('span');
-    badge.className = 'badge';
-    badge.style.backgroundColor = '#ef4444';
-    badge.textContent = count > 99 ? '99+' : count;
-    reqItem.appendChild(badge);
-  }
 }
