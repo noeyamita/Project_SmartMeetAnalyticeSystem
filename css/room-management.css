@@ -376,7 +376,6 @@ td {
     to { transform: rotate(360deg); }
 }
 
-/* Toast Notification */
 .toast {
     position: fixed;
     bottom: 30px;
@@ -403,4 +402,115 @@ td {
 
 .toast.error {
     background: #dc3545;
+}
+
+/* --- ส่วนของ Modal หาห้องทดแทน (Alternative Room) --- */
+.alt-room-info-box {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #fffbeb;
+    border-radius: 8px;
+    border-left: 4px solid #f59e0b;
+}
+
+.alt-room-info-title {
+    color: #d97706;
+}
+
+.alt-room-info-subtitle {
+    font-size: 0.9rem;
+}
+
+.alt-room-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.alt-room-layout-item {
+    border: 1px solid #eee;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.alt-room-layout-item:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.alt-room-label {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.alt-room-name {
+    color: #4a5568;
+}
+
+.alt-room-details {
+    font-size: 12px;
+    color: #718096;
+}
+
+.alt-room-empty-state {
+    color: #e53e3e;
+    text-align: center;
+    padding: 20px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    align-items: center; 
+    justify-content: center; 
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background-color: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 550px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-header {
+    padding: 15px 20px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.modal-body {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto; 
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
 }

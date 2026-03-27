@@ -18,7 +18,7 @@ if ($capacity > 0) {
     $sql .= " WHERE capacity >= :capacity";
 }
 
-$sql .= " ORDER BY room_id ASC";
+$sql .= " ORDER BY capacity ASC";
 
 $stmt = $pdo->prepare($sql);
 
@@ -81,6 +81,8 @@ foreach ($rooms as $room) {
 
 
     $room['image_url'] = cleanImagePath($room['image_url']);
+    $formatted_open_time = !empty($room['open_time']) ? substr($room['open_time'], 0, 5) : '';
+    $formatted_close_time = !empty($room['close_time']) ? substr($room['close_time'], 0, 5) : '';
     $data[] = [
         'room_id' => $room['room_id'],
         'room_name' => $room['room_name'],
@@ -90,8 +92,8 @@ foreach ($rooms as $room) {
         'status' => $room['status'],
         'image_url' => $room['image_url'],
         'description' => $room['description'],
-        'open_time' => $room['open_time'],
-        'close_time' => $room['close_time'],
+        'open_time' => $formatted_open_time,
+        'close_time' => $formatted_close_time,
         'availability_status' => $availability_status,
         'availability_text' => $availability_text
     ];

@@ -12,12 +12,11 @@
     <main class="main-content">
         <div class="container">
             <header>
-                <h1>📋 ระบบจัดการห้องประชุม</h1>
+                <h1><i class="fa-solid fa-screwdriver-wrench"></i> ระบบจัดการห้องประชุม</h1>
                 <p class="subtitle">Meeting Room Management System</p>
             </header>
 
             <div class="content">
-                <!-- ฟอร์มเพิ่ม/แก้ไขห้อง -->
                 <section class="form-section">
                     <h2 id="formTitle">เพิ่มห้องประชุมใหม่</h2>
                     <form id="roomForm">
@@ -76,21 +75,21 @@
 
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary" id="submitBtn">
-                                <span class="btn-icon">💾</span> บันทึก
+                                <i class="fa-solid fa-floppy-disk"></i> บันทึก
                             </button>
                             <button type="button" class="btn btn-secondary" id="cancelBtn">
-                                <span class="btn-icon">✖️</span> ยกเลิก
+                                <i class="fa-solid fa-xmark"></i> ยกเลิก
                             </button>
                         </div>
                     </form>
                 </section>
 
-                <!-- ตารางแสดงรายการห้อง -->
                 <section class="table-section">
                     <div class="table-header">
                         <h2>รายการห้องประชุม</h2>
                         <div class="search-box">
-                            <input type="text" id="searchInput" placeholder="🔍 ค้นหาห้อง...">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="searchInput" placeholder="ค้นหาห้อง...">
                         </div>
                     </div>
 
@@ -111,7 +110,9 @@
                             </thead>
                             <tbody id="roomTableBody">
                                 <tr>
-                                    <td colspan="8" class="text-center">กำลังโหลดข้อมูล...</td>
+                                    <td colspan="9" class="text-center">
+                                        <i class="fa-solid fa-circle-notch fa-spin"></i> กำลังโหลดข้อมูล...
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -121,12 +122,29 @@
         </div>
     </main>
 
-    <!-- Loading Overlay -->
+    <div id="altRoomModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i> จัดหาห้องทดแทน (ห้องถูกปิด)</h3>
+            </div>
+            <div class="modal-body" id="altRoomList">
+                <div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังค้นหาข้อมูล...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="skipMoveRoom()">
+                    <i class="fa-solid fa-forward-step"></i> ข้าม (ปล่อยสถานะให้รอการย้าย)
+                </button>
+                <button class="btn btn-primary" id="confirmMoveBtn" onclick="confirmMoveRoom()" disabled>
+                    <i class="fa-solid fa-check"></i> ยืนยันการย้ายไปห้องนี้
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="loadingOverlay" class="loading-overlay">
         <div class="spinner"></div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
     <script src="js/room-management.js"></script>

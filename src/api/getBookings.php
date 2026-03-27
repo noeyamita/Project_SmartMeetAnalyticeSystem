@@ -8,7 +8,6 @@ if (!$date) {
     exit;
 }
 
-// ✅ ฟังก์ชันสำหรับแปลง Decimal Hour (15.5) เป็น HH:MM (15:30) ที่แก้ไข
 function decimalToTime($decimal) {
     if (!is_numeric($decimal)) return null;
     $hours = floor($decimal);
@@ -27,8 +26,7 @@ try {
     $stmt = $pdo->prepare("SELECT * FROM Bookings WHERE booking_date = ?");
     $stmt->execute([$date]);
     $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // ✅ แปลงค่าเพื่อการแสดงผลโดยเฉพาะ
+    
     foreach ($bookings as &$booking) {
         $booking['start_time_display'] = decimalToTime($booking['start_time']);
         $booking['end_time_display'] = decimalToTime($booking['end_time']);
