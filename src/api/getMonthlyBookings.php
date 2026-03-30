@@ -32,7 +32,6 @@ try {
         "status" => "success",
         "data" => $result
     ]);
-
 } catch (PDOException $e) {
     error_log("Database Error: " . $e->getMessage());
     echo json_encode([
@@ -40,4 +39,3 @@ try {
         "message" => "เกิดข้อผิดพลาดในการดึงข้อมูล"
     ]);
 }
-?>

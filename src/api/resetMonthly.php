@@ -32,10 +32,8 @@ try {
     $pdo->commit();
 
     echo "Monthly reset + auto unban done\n";
-
 } catch (PDOException $e) {
     $pdo->rollBack();
     error_log("Reset Monthly Error: " . $e->getMessage());
     echo "Error: " . $e->getMessage() . "\n";
 }
-?>

@@ -7,7 +7,8 @@ header("Content-Type: application/json");
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
-function canBookByRole($role, $bookingDate) {
+function canBookByRole($role, $bookingDate)
+{
     $today = new DateTime('today');
     $booking = new DateTime($bookingDate);
 
@@ -25,13 +26,15 @@ function canBookByRole($role, $bookingDate) {
     }
 }
 
-function isNotPastTime($booking_date, $booking_time) {
+function isNotPastTime($booking_date, $booking_time)
+{
     $now = new DateTime();
     $bookingDateTime = new DateTime($booking_date . ' ' . $booking_time);
     return $bookingDateTime > $now;
 }
 
-function isBookingAtLeast3HoursInAdvance($booking_date, $booking_time) {
+function isBookingAtLeast3HoursInAdvance($booking_date, $booking_time)
+{
     $now = new DateTime();
     $bookingDateTime = new DateTime($booking_date . ' ' . $booking_time);
     $hoursDiff = ($bookingDateTime->getTimestamp() - $now->getTimestamp()) / 3600;
@@ -77,29 +80,29 @@ if ($role !== 'admin') {
         $userData = $stmtBan->fetch(PDO::FETCH_ASSOC);
 
         if ($userData && $userData['is_banned'] == 1) {
-        $today = date("Y-m-d");
+            $today = date("Y-m-d");
 
-        if (!empty($userData['ban_enddate']) && $today >= $userData['ban_enddate']) {
-            $pdo->prepare("UPDATE users SET is_banned = 0 WHERE user_id = :user_id")->execute(['user_id' => $user_id]);
-            if ($userData['ban_id']) {
-                $pdo->prepare("UPDATE Ban_Log SET unbanned_date = CURRENT_DATE(), unbanned_by = 0 WHERE ban_id = :ban_id")
-                    ->execute(['ban_id' => $userData['ban_id']]);
-            }
-        } else {
-            if (!empty($userData['ban_enddate'])) {
-                $end_date_th = date("d/m/Y", strtotime($userData['ban_enddate']));
-                $ban_message = "บัญชีของคุณถูกระงับสิทธิ์การจองชั่วคราว (จะถูกปลดแบนวันที่ $end_date_th)";
+            if (!empty($userData['ban_enddate']) && $today >= $userData['ban_enddate']) {
+                $pdo->prepare("UPDATE users SET is_banned = 0 WHERE user_id = :user_id")->execute(['user_id' => $user_id]);
+                if ($userData['ban_id']) {
+                    $pdo->prepare("UPDATE Ban_Log SET unbanned_date = CURRENT_DATE(), unbanned_by = 0 WHERE ban_id = :ban_id")
+                        ->execute(['ban_id' => $userData['ban_id']]);
+                }
             } else {
-                $ban_message = "บัญชีของคุณถูกระงับสิทธิ์การจอง (กรุณาติดต่อผู้ดูแลระบบ)";
+                if (!empty($userData['ban_enddate'])) {
+                    $end_date_th = date("d/m/Y", strtotime($userData['ban_enddate']));
+                    $ban_message = "บัญชีของคุณถูกระงับสิทธิ์การจองชั่วคราว (จะถูกปลดแบนวันที่ $end_date_th)";
+                } else {
+                    $ban_message = "บัญชีของคุณถูกระงับสิทธิ์การจอง (กรุณาติดต่อผู้ดูแลระบบ)";
+                }
+
+                echo json_encode([
+                    "status" => "error",
+                    "message" => $ban_message
+                ]);
+                exit;
             }
-            
-            echo json_encode([
-                "status" => "error", 
-                "message" => $ban_message
-            ]);
-            exit;
         }
-    }
     } catch (PDOException $e) {
         error_log("Ban Check Error: " . $e->getMessage());
     }
@@ -190,7 +193,7 @@ try {
         }
     }
 
-    $bookingStatus = 1; 
+    $bookingStatus = 1;
 
     if ($hasOverlap) {
         if ($role === 'normal') {
@@ -231,7 +234,7 @@ try {
         'start_time'     => $start_time,
         'end_time'       => $end_time,
         'purpose'        => $purpose,
-        'attendees_count'=> $capacity,
+        'attendees_count' => $capacity,
         'table_layout'   => $table_layout_id,
         'status'         => $bookingStatus
     ]);
@@ -282,9 +285,8 @@ try {
         "message"      => $successMessage,
         "booking_id"   => $booking_id,
         "booking_time" => $start_time . " - " . $end_time,
-        "displaced_bookings" => $displacedBookings 
+        "displaced_bookings" => $displacedBookings
     ]);
-
 } catch (PDOException $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
@@ -298,4 +300,3 @@ try {
     error_log("Booking Error: " . $e->getMessage());
     echo json_encode(["status" => "error", "message" => "Error: " . $e->getMessage()]);
 }
-?>

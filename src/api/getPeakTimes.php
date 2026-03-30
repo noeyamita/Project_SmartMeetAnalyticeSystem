@@ -38,7 +38,7 @@ try {
     }
 
     // เรียงตามจำนวนมากไปน้อย
-    usort($result, function($a, $b) {
+    usort($result, function ($a, $b) {
         return $b['booking_count'] - $a['booking_count'];
     });
 
@@ -46,7 +46,6 @@ try {
         "status" => "success",
         "data" => $result
     ]);
-
 } catch (PDOException $e) {
     error_log("Database Error: " . $e->getMessage());
     echo json_encode([
@@ -54,4 +53,3 @@ try {
         "message" => "เกิดข้อผิดพลาดในการดึงข้อมูล"
     ]);
 }
-?>

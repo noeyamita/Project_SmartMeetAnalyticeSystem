@@ -22,7 +22,7 @@ try {
         FROM users
         WHERE user_id = :user_id
     ");
-    
+
     $stmt->execute(['user_id' => $userId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -41,7 +41,6 @@ try {
         "status" => "success",
         "data" => $user
     ]);
-
 } catch (PDOException $e) {
     error_log("Get User Error: " . $e->getMessage());
     echo json_encode([
@@ -49,4 +48,3 @@ try {
         "message" => "Database error: " . $e->getMessage()
     ]);
 }
-?>

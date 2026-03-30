@@ -20,7 +20,7 @@ try {
     $fname = trim($data['fname']);
     $lname = trim($data['lname']);
     $phone = trim($data['phone']);
-    
+
     $isEmailChanged = isset($data['email']) && !empty(trim($data['email']));
 
     if ($isEmailChanged) {
@@ -38,7 +38,7 @@ try {
 
         if (!$user || !password_verify($currentPassword, $user['user_password'])) {
             echo json_encode(["status" => "error", "message" => "รหัสผ่านปัจจุบันไม่ถูกต้อง!"]);
-            exit; 
+            exit;
         }
 
         $stmtEmail = $pdo->prepare("SELECT user_id FROM users WHERE email = ? AND user_id != ?");
@@ -67,9 +67,7 @@ try {
         "status" => "success",
         "message" => "อัปเดตข้อมูลโปรไฟล์เรียบร้อยแล้ว"
     ]);
-
 } catch (PDOException $e) {
     error_log("Update User Error: " . $e->getMessage());
     echo json_encode(["status" => "error", "message" => "Database error: " . $e->getMessage()]);
 }
-?>

@@ -15,7 +15,7 @@ try {
         WHERE b.status = 3
         ORDER BY b.booking_date ASC, b.start_time ASC
     ";
-    
+
     $stmt = $pdo->prepare($query);
     $stmt->execute();
     $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -29,15 +29,13 @@ try {
         ");
         $overlapStmt->execute([$req['room_id'], $req['booking_date'], $req['end_time'], $req['start_time']]);
         $currentOwners = $overlapStmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        $req['current_owners'] = array_map(function($owner) {
+
+        $req['current_owners'] = array_map(function ($owner) {
             return $owner['fname'] . ' ' . $owner['lname'];
         }, $currentOwners);
     }
 
     echo json_encode(["status" => "success", "data" => $requests]);
-
 } catch (PDOException $e) {
     echo json_encode(["status" => "error", "message" => "Database error"]);
 }
-?>

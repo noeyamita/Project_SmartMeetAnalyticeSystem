@@ -527,16 +527,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const isLastChance = cancelQuotaRemaining === 1;
     const confirmResult = await Swal.fire({
       title: isLastChance
-        ? "⚠️ ยืนยันการยกเลิก (ครั้งสุดท้าย!)"
+        ? '<i class="fa-solid fa-triangle-exclamation" style="color: #e53e3e;"></i> ยืนยันการยกเลิก (ครั้งสุดท้าย!)'
         : "ยืนยันการยกเลิก",
       html: isLastChance
-        ? `ต้องการยกเลิกการจองห้อง <b>${booking.room}</b><br>วันที่ ${booking.date} ใช่หรือไม่?<br><br><span style="color:#e53e3e; font-weight:600;">⚠️ นี่คือโควตาสุดท้ายของเดือนนี้ หากยกเลิกจะถูกระงับสิทธิ์ทันที!</span>`
+        ? `ต้องการยกเลิกการจองห้อง <b>${booking.room}</b><br>วันที่ ${booking.date} ใช่หรือไม่?<br><br><span style="color:#e53e3e; font-weight:600;"><i class="fa-solid fa-triangle-exclamation"></i> นี่คือโควตาสุดท้ายของเดือนนี้ หากยกเลิกจะถูกระงับสิทธิ์ทันที!</span>`
         : `ต้องการยกเลิกการจองห้อง <b>${booking.room}</b><br>วันที่ ${booking.date} ใช่หรือไม่?`,
       icon: isLastChance ? "error" : "warning",
       showCancelButton: true,
       confirmButtonColor: "#e53e3e",
       cancelButtonColor: "#6c757d",
-      confirmButtonText: "ยืนยัน ยกเลิกการจอง",
+      confirmButtonText:
+        '<i class="fa-solid fa-trash-can"></i> ยืนยัน ยกเลิกการจอง',
       cancelButtonText: "ไม่ใช่",
     });
 

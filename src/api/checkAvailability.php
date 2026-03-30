@@ -18,7 +18,6 @@ try {
         exit;
     }
 
-    // ตรวจสอบสถานะห้องจาก Meeting_Rooms JOIN กับตาราง status
     $roomStmt = $pdo->prepare("
         SELECT 
             mr.room_id,
@@ -31,18 +30,14 @@ try {
     ");
     $roomStmt->execute(['room_id' => $room_id]);
     $room = $roomStmt->fetch(PDO::FETCH_ASSOC);
-
-    // ถ้าไม่พบห้อง
     if (!$room) {
         echo json_encode([
-            'available' => false, 
+            'available' => false,
             'message' => 'ไม่พบห้องประชุมนี้'
         ]);
         exit;
     }
 
-    // ตรวจสอบสถานะห้อง
-    // status_id: 1 = ห้องว่าง, 2 = ถูกจอง, 3 = ปิดปรับปรุง
     if ($room['status_id'] == 3) {
         echo json_encode([
             'available' => false,
@@ -52,10 +47,6 @@ try {
         ]);
         exit;
     }
-
-    // ตรวจสอบว่าห้องถูกจองในช่วงเวลานี้หรือไม่
-    // Booking status: 1 = ยืนยันแล้ว, 2 = รอยืนยัน, 3 = ยกเลิก
-    // ต้องตรวจสอบเฉพาะที่ยังไม่ยกเลิก (status != 3)
     $stmt = $pdo->prepare("
         SELECT 
             COUNT(*) as booking_count,
@@ -78,8 +69,7 @@ try {
 
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $isBooked = ($result['booking_count'] > 0);
-    
-    // ห้องจะว่างก็ต่อเมื่อ: ไม่ใช่ปิดปรับปรุง (status_id != 3) และไม่มีการจองในช่วงนี้
+
     $available = ($room['status_id'] != 3 && !$isBooked);
 
     echo json_encode([
@@ -91,12 +81,10 @@ try {
         'booking_count' => $result['booking_count'],
         'booked_times' => $result['booked_times']
     ]);
-
 } catch (PDOException $e) {
     error_log("checkAvailability Error: " . $e->getMessage());
     echo json_encode([
-        'available' => false, 
+        'available' => false,
         'message' => 'เกิดข้อผิดพลาดในการตรวจสอบห้อง: ' . $e->getMessage()
     ]);
 }
-?>

@@ -32,7 +32,6 @@ try {
         'users' => $users,
         'count' => count($users)
     ], JSON_UNESCAPED_UNICODE);
-
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
@@ -40,4 +39,3 @@ try {
         'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
 }
-?>

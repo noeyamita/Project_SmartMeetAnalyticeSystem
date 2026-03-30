@@ -67,7 +67,6 @@ try {
         'data'         => $notifications,
         'unread_count' => (int)$unread['unread_count']
     ]);
-
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }

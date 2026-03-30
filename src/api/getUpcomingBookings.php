@@ -13,7 +13,8 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-function formatThaiDate($date, $currentDate) {
+function formatThaiDate($date, $currentDate)
+{
     $bookingDate = new DateTime($date);
     $today = new DateTime($currentDate);
     $tomorrow = clone $today;
@@ -31,7 +32,7 @@ function formatThaiDate($date, $currentDate) {
 try {
     $userId = $_SESSION['user_id'];
     $currentDate = date('Y-m-d');
-    $currentTime = date('H:i:s'); 
+    $currentTime = date('H:i:s');
 
     $query = "
         SELECT 
@@ -55,7 +56,7 @@ try {
     ";
 
     $stmt = $pdo->prepare($query);
-    $stmt->execute([$userId, $currentDate, $currentDate, $currentTime]); 
+    $stmt->execute([$userId, $currentDate, $currentDate, $currentTime]);
     $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $result = [];
     foreach ($bookings as $booking) {
@@ -63,7 +64,7 @@ try {
             'booking_id' => $booking['booking_id'],
             'booking_date' => $booking['booking_date'],
             'booking_date_thai' => formatThaiDate($booking['booking_date'], $currentDate),
-            'start_time' => date('H:i', strtotime($booking['start_time'])), 
+            'start_time' => date('H:i', strtotime($booking['start_time'])),
             'end_time' => date('H:i', strtotime($booking['end_time'])),
             'room_name' => $booking['room_name'],
             'purpose' => $booking['purpose']
@@ -74,7 +75,6 @@ try {
         "status" => "success",
         "data" => $result
     ], JSON_UNESCAPED_UNICODE);
-
 } catch (PDOException $e) {
     error_log("PDO Error in getUpcomingBookings: " . $e->getMessage());
     echo json_encode([
@@ -88,4 +88,3 @@ try {
         "message" => "Error: " . $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
 }
-?>

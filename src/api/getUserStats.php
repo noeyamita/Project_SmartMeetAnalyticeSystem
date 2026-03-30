@@ -3,7 +3,6 @@ session_start();
 require_once __DIR__ . '/../config/config.php';
 header("Content-Type: application/json");
 
-// ตรวจสอบการล็อกอิน
 if (!isset($_SESSION['user_id'])) {
     echo json_encode([
         "status" => "error",
@@ -19,8 +18,6 @@ try {
     $currentHour = intval(date('H'));
     $currentMinute = intval(date('i'));
     $currentTime = $currentHour + ($currentMinute / 100);
-
-    // จำนวนการจองทั้งหมดในปีนี้ (ทุกสถานะ)
     $totalQuery = "
         SELECT COUNT(*) as total
         FROM Bookings
@@ -32,7 +29,6 @@ try {
     $totalStmt->execute([$userId, $currentYear]);
     $totalResult = $totalStmt->fetch(PDO::FETCH_ASSOC);
 
-    // จำนวนการจองที่เสร็จสมบูรณ์ (status = 1 และเวลาผ่านไปแล้ว)
     $completedQuery = "
         SELECT COUNT(*) as completed
         FROM Bookings
@@ -55,7 +51,7 @@ try {
     ]);
     $completedResult = $completedStmt->fetch(PDO::FETCH_ASSOC);
 
-    // จำนวนการจองที่ยกเลิก (status = 2)
+
     $cancelledQuery = "
         SELECT COUNT(*) as cancelled
         FROM Bookings

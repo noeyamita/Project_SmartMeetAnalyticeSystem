@@ -21,7 +21,7 @@ try {
             updated_at = NOW()
         WHERE booking_id = :booking_id
     ");
-    
+
     $update->execute([
         'new_room'   => $new_room_id,
         'old_room'   => $old['room_id'],
@@ -30,8 +30,6 @@ try {
 
     // อุปกรณ์ย้ายตาม booking_id
     echo json_encode(["status" => "success"]);
-
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     echo json_encode(["status" => "error", "message" => "Database Error"]);
 }
-?>

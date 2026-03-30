@@ -4,22 +4,25 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+
 define('GMAIL_USER', 'smartmeet.system@gmail.com');
 define('GMAIL_PASS', 'pwjlsptzemewystp');
 define('NOTI_MAIL_NAME',  'SmartMeet Analytics System');
 
-class NotificationHelper {
+class NotificationHelper
+{
     private $pdo;
 
-    public function __construct() {
+    public function __construct()
+    {
         $db = new Database();
         $this->pdo = $db->getConnection();
     }
-    // ส่ง Notification ทั้ง in-app และ Email
 
-    public function sendNotification($user_id, $booking_id, $type, $message, $email, $subject) {
+    public function sendNotification($user_id, $booking_id, $type, $message, $email, $subject)
+    {
         try {
-            //บันทึก in-app (INSERT IGNORE ป้องกัน duplicate)
+            //บันทึก in-app (INSERT IGNORE ป้องกันการแจ้งเตือนซ้ำ)
             $stmt = $this->pdo->prepare("
                 INSERT IGNORE INTO Notifications (user_id, booking_id, type, message, is_read, email_sent, sent_at)
                 VALUES (?, ?, ?, ?, 0, 0, NOW())
@@ -39,13 +42,14 @@ class NotificationHelper {
             }
 
             return true;
-
         } catch (Exception $e) {
             error_log("sendNotification error: " . $e->getMessage());
             return false;
         }
     }
-    private function sendEmail($to, $subject, $body) {
+
+    private function sendEmail($to, $subject, $body)
+    {
         $mail = new PHPMailer(true);
         try {
             $mail->isSMTP();
@@ -66,7 +70,6 @@ class NotificationHelper {
 
             $mail->send();
             return true;
-
         } catch (Exception $e) {
             error_log("sendEmail error: " . $mail->ErrorInfo);
             return false;
@@ -74,7 +77,8 @@ class NotificationHelper {
     }
 
     // สร้างTemplate สำหรับ Email
-    private function buildEmailHTML($body) {
+    private function buildEmailHTML($body)
+    {
         $htmlBody = nl2br(htmlspecialchars($body));
 
         return "
@@ -94,7 +98,8 @@ class NotificationHelper {
         </div>";
     }
 
-    public function notifyRoomMoved($booking_id) {
+    public function notifyRoomMoved($booking_id)
+    {
         try {
             $stmt = $this->pdo->prepare("
                 SELECT 
@@ -116,35 +121,31 @@ class NotificationHelper {
             if (!$booking) return false;
 
             $date     = date('d/m/Y', strtotime($booking['booking_date']));
-            $start    = $this->formatTime($booking['start_time']);
-            $end      = $this->formatTime($booking['end_time']);
+            $start    = substr($booking['start_time'], 0, 5);
+            $end      = substr($booking['end_time'], 0, 5);
             $fullName = $booking['fname'] . ' ' . $booking['lname'];
             $oldRoom  = $booking['old_room_name'] ?? 'ไม่ระบุ';
             $newRoom  = $booking['new_room_name'];
 
             $message = "เรียน คุณ{$fullName}\n\n"
-                     . "การจองของคุณถูกย้ายห้องประชุม\n"
-                     . "หัวข้อ: {$booking['purpose']}\n"
-                     . "วันที่: {$date}\n"
-                     . "เวลา: {$start} - {$end}\n"
-                     . "ย้ายจาก: {$oldRoom}\n"
-                     . "ไปยัง: {$newRoom}";
+                . "การจองของคุณถูกย้ายห้องประชุม\n"
+                . "หัวข้อ: {$booking['purpose']}\n"
+                . "วันที่: {$date}\n"
+                . "เวลา: {$start} - {$end}\n"
+                . "ย้ายจาก: {$oldRoom}\n"
+                . "ไปยัง: {$newRoom}";
 
             return $this->sendNotification(
-                $booking['user_id'], $booking_id, 'room_moved',
-                $message, $booking['email'],
+                $booking['user_id'],
+                $booking_id,
+                'room_moved',
+                $message,
+                $booking['email'],
                 "แจ้งเตือน: การจองของคุณถูกย้ายห้อง - {$date}"
             );
-
         } catch (Exception $e) {
             error_log("notifyRoomMoved error: " . $e->getMessage());
             return false;
         }
-    }
-
-    private function formatTime($decimal) {
-        $hours   = floor($decimal);
-        $minutes = round(($decimal - $hours) * 60);
-        return sprintf('%02d:%02d', $hours, $minutes);
     }
 }

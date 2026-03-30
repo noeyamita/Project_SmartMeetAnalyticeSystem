@@ -3,22 +3,11 @@ session_start();
 require_once __DIR__ . '/../config/config.php';
 header("Content-Type: application/json");
 
-// ฟังก์ชันแปลง Decimal -> HH:MM
-function decimalToTime($decimal) {
-    if ($decimal === null) return null;
-    
-    $hours = floor($decimal);
-    $minutes = round(($decimal - $hours) * 100);
-    
-    return sprintf("%02d:%02d", $hours, $minutes);
-}
-
 try {
     $now = new DateTime();
     $currentDate = $now->format('Y-m-d');
-    $currentTime = floatval($now->format('H')) + (floatval($now->format('i')) / 100);
+    $currentTime = $now->format('H:i:s');
 
-    // ดึงข้อมูลห้องทั้งหมด
     $query = "
         SELECT 
             r.room_id,
@@ -41,8 +30,6 @@ try {
 
     foreach ($rooms as $room) {
         $roomId = $room['room_id'];
-        
-        // ตรวจสอบการจองในปัจจุบัน
         $bookingQuery = "
             SELECT booking_id, start_time, end_time
             FROM Bookings
@@ -82,19 +69,15 @@ try {
         ]);
 
         $upcomingBooking = $upcomingStmt->fetch(PDO::FETCH_ASSOC);
-
-        // กำหนดสถานะ
         $status = 'available';
         $statusInfo = '';
 
         if ($currentBooking) {
             $status = 'occupied';
-            $endTime = decimalToTime($currentBooking['end_time']);
-            $statusInfo = "ใช้งานจนถึง {$endTime}";
+            $statusInfo = "ใช้งานจนถึง " . substr($currentBooking['end_time'], 0, 5);
         } elseif ($upcomingBooking) {
             $status = 'reserved';
-            $startTime = decimalToTime($upcomingBooking['start_time']);
-            $statusInfo = "จองเวลา {$startTime}";
+            $statusInfo = "จองเวลา " . substr($upcomingBooking['start_time'], 0, 5);
         }
 
         $roomsWithStatus[] = [
@@ -112,7 +95,6 @@ try {
         "data" => $roomsWithStatus,
         "timestamp" => $now->format('Y-m-d H:i:s')
     ]);
-
 } catch (PDOException $e) {
     error_log("Database Error: " . $e->getMessage());
     echo json_encode([
@@ -120,4 +102,3 @@ try {
         "message" => "เกิดข้อผิดพลาดในการดึงข้อมูล"
     ]);
 }
-?>

@@ -27,12 +27,14 @@ WORKDIR /var/www/html
 RUN composer require phpmailer/phpmailer --no-interaction --no-progress
 
 
-# Cron job (ทุก 1 นาทีตอนทดสอบ + reset รายเดือน)
-RUN echo "* * * * * root /usr/local/bin/php /var/www/html/src/api/send_reminders.php >> /var/log/reminders.log 2>&1 0 0 1 * * root /usr/local/bin/php /var/www/html/src/api/resetMonthly.php >> /var/log/reset.log 2>&1" > /etc/cron.d/send_reminders \
+# Cron job
+RUN echo "* * * * * root /usr/local/bin/php /var/www/html/src/api/send_reminders.php >> /var/log/reminders.log 2>&1\n\
+    0 0 1 * * root /usr/local/bin/php /var/www/html/src/api/resetMonthly.php >> /var/log/reset.log 2>&1\n\
+    */30 * * * * root /usr/local/bin/php /var/www/html/src/api/returnEquipment.php >> /var/log/returnEquipment.log 2>&1" > /etc/cron.d/send_reminders \
     && chmod 0644 /etc/cron.d/send_reminders \
     && crontab /etc/cron.d/send_reminders \
-    && touch /var/log/reminders.log /var/log/reset.log \
-    && chmod 777 /var/log/reminders.log /var/log/reset.log
+    && touch /var/log/reminders.log /var/log/reset.log /var/log/returnEquipment.log \
+    && chmod 777 /var/log/reminders.log /var/log/reset.log /var/log/returnEquipment.log
 
 # copy entrypoint
 COPY docker-entrypoint.sh /docker-entrypoint.sh

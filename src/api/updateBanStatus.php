@@ -75,10 +75,9 @@ try {
             $today,
             $reason !== '' ? $reason : 'ไม่ระบุเหตุผล',
             $admin_id,
-            $admin_id, 
-            $today,      
+            $admin_id,
+            $today,
         ]);
-
     } else {
         $updated = $pdo->prepare("
             UPDATE Ban_Log
@@ -108,7 +107,6 @@ try {
         'user_id'   => $target_id,
         'is_banned' => $is_banned,
     ], JSON_UNESCAPED_UNICODE);
-
 } catch (Exception $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
     http_response_code(500);
@@ -117,4 +115,3 @@ try {
         'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
 }
-?>

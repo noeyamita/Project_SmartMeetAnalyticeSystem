@@ -1,7 +1,7 @@
 <?php
 session_start();
 header("Content-Type: application/json; charset=utf-8");
-require_once __DIR__ . '/../config/config.php'; 
+require_once __DIR__ . '/../config/config.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 $user_id_to_unban = isset($input['user_id']) ? intval($input['user_id']) : 0;
@@ -52,7 +52,6 @@ try {
         "status" => "success",
         "message" => "ปลดแบนผู้ใช้สำเร็จ"
     ]);
-
 } catch (Exception $e) {
     $pdo->rollBack();
     error_log("Unban Error: " . $e->getMessage());
@@ -61,4 +60,3 @@ try {
         "message" => "เกิดข้อผิดพลาด: " . $e->getMessage()
     ]);
 }
-?>

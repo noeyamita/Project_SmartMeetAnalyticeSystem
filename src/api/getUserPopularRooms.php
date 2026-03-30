@@ -3,7 +3,6 @@ session_start();
 require_once __DIR__ . '/../config/config.php';
 header("Content-Type: application/json");
 
-// ตรวจสอบการล็อกอิน
 if (!isset($_SESSION['user_id'])) {
     echo json_encode([
         "status" => "error",
@@ -44,7 +43,6 @@ try {
         "status" => "success",
         "data" => $rooms
     ]);
-
 } catch (PDOException $e) {
     error_log("Database Error: " . $e->getMessage());
     echo json_encode([
@@ -52,4 +50,3 @@ try {
         "message" => "เกิดข้อผิดพลาดในการดึงข้อมูล"
     ]);
 }
-?>

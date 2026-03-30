@@ -33,19 +33,20 @@ try {
         WHERE b.user_id = :user_id
         ORDER BY b.booking_date DESC, b.start_time DESC
     ");
-    
+
     $stmt->execute(['user_id' => $userId]);
     $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // จัดรูปแบบข้อมูล
-    $formattedBookings = array_map(function($booking) {
+    $formattedBookings = array_map(function ($booking) {
         return [
             'id' => $booking['booking_id'],
             'room' => $booking['room_name'],
             'floor' => $booking['floor_number'],
             'date' => date('d/m/Y', strtotime($booking['booking_date'])),
-            'time' => sprintf('%s - %s', 
-                str_replace('.', ':', $booking['start_time']), 
+            'time' => sprintf(
+                '%s - %s',
+                str_replace('.', ':', $booking['start_time']),
                 str_replace('.', ':', $booking['end_time'])
             ),
             'purpose' => $booking['purpose'],
@@ -60,7 +61,6 @@ try {
         "data" => $formattedBookings,
         "count" => count($formattedBookings)
     ]);
-
 } catch (PDOException $e) {
     error_log("Get Bookings Error: " . $e->getMessage());
     echo json_encode([
@@ -68,4 +68,3 @@ try {
         "message" => "Database error: " . $e->getMessage()
     ]);
 }
-?>

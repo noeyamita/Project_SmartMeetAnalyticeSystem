@@ -7,7 +7,8 @@ $database = new Database();
 $pdo = $database->getConnection();
 
 
-function checkRoomAvailability($room_id, $date, $start_time, $end_time) {
+function checkRoomAvailability($room_id, $date, $start_time, $end_time)
+{
     $sql = "SELECT COUNT(*) FROM Bookings 
             WHERE room_id = ? 
             AND booking_date = ? 
@@ -41,4 +42,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => false, 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()]);
     }
 }
-?>

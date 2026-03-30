@@ -31,7 +31,8 @@ $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $data = [];
 
-function cleanImagePath($path) {
+function cleanImagePath($path)
+{
     if (!$path) return '';
     if (strpos($path, 'http://') === 0 || strpos($path, 'https://') === 0) return $path;
     $path = str_replace(['uploads/rooms/', 'uploads/'], '', $path);

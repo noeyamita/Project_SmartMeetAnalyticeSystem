@@ -1,6 +1,6 @@
 <?php
 session_start();
-date_default_timezone_set('Asia/Bangkok'); 
+date_default_timezone_set('Asia/Bangkok');
 header("Content-Type: application/json");
 ini_set('display_errors', 0);
 require_once __DIR__ . '/../config/config.php';
@@ -29,20 +29,20 @@ try {
     }
 
     $currentDate = date('Y-m-d');
-    
+
     $bookingStart = date('H:i:s', strtotime('+3 hours 10 minutes'));
-    
+
     $bookingEnd = date('H:i:s', strtotime('+4 hours'));
-    
-    if ($bookingEnd < $bookingStart) { 
-        $bookingEnd = '23:59:59'; 
+
+    if ($bookingEnd < $bookingStart) {
+        $bookingEnd = '23:59:59';
     }
 
     $results = [];
     foreach ($popularRooms as $room) {
         $status = 'available';
         if ($bookingStart < $room['open_time'] || $bookingEnd > $room['close_time']) {
-            $status = 'unavailable'; 
+            $status = 'unavailable';
         } else {
             $checkStmt = $pdo->prepare("
                 SELECT booking_id FROM Bookings
@@ -55,7 +55,7 @@ try {
                 'start_time' => $bookingStart,
                 'end_time' => $bookingEnd
             ]);
-            
+
             if ($checkStmt->rowCount() > 0) {
                 $status = 'occupied'; // ไม่ว่าง ติดจอง
             }
@@ -72,8 +72,6 @@ try {
     }
 
     echo json_encode(["status" => "success", "data" => $results]);
-
 } catch (Exception $e) {
     echo json_encode(["status" => "error", "message" => "System Error"]);
 }
-?>

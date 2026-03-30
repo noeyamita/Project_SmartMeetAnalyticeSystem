@@ -22,7 +22,8 @@ define('MAIL_NAME', 'SmartMeet Analytics System');
 define('APP_NAME',  'SmartMeet Analytics System');
 define('APP_URL',   'http://localhost:8080');
 
-function generateTempPassword(): string {
+function generateTempPassword(): string
+{
     $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#';
     $pass  = '';
     for ($i = 0; $i < 10; $i++) {
@@ -107,7 +108,6 @@ try {
 
     $mail->send();
     echo json_encode(['success' => true, 'message' => 'ส่งรหัสผ่านชั่วคราวไปยังอีเมลแล้ว']);
-
 } catch (Exception $e) {
     error_log('[ForgotPassword] ' . $mail->ErrorInfo);
     echo json_encode(['success' => false, 'message' => 'Failed to send email']);

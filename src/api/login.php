@@ -57,8 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['role_name'] = $role['role_name'] ?? 'Normal';
 
         session_regenerate_id(true);
-
-        // ✅ ดึงชื่อ role จากตาราง role
         $roleStmt = $pdo->prepare("SELECT role_name FROM role WHERE role_id = ?");
         $roleStmt->execute([$user['role_id']]);
         $role = $roleStmt->fetch(PDO::FETCH_ASSOC);

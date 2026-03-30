@@ -1,7 +1,7 @@
 <?php
 session_start();
 header("Content-Type: application/json; charset=utf-8");
-require_once __DIR__ . '/../config/config.php'; 
+require_once __DIR__ . '/../config/config.php';
 
 $room_id = isset($_GET['room_id']) ? intval($_GET['room_id']) : 0;
 
@@ -56,13 +56,12 @@ try {
             $stmtRooms->bindValue(':bdate', $booking['booking_date'], PDO::PARAM_STR);
             $stmtRooms->bindValue(':end_time_check', $booking['end_time'], PDO::PARAM_STR);
             $stmtRooms->bindValue(':start_time_check', $booking['start_time'], PDO::PARAM_STR);
-            
+
             $stmtRooms->execute();
             $altRooms = $stmtRooms->fetchAll(PDO::FETCH_ASSOC);
-            
+
             $booking['alternative_rooms'] = $altRooms;
         }
-
     } else {
         echo json_encode([
             'status' => 'success',
@@ -78,8 +77,6 @@ try {
         'message' => 'เตรียมข้อมูลสำเร็จ',
         'data' => $affected_bookings
     ]);
-
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     echo json_encode(["status" => "error", "message" => "DB Error: " . $e->getMessage()]);
 }
-?>

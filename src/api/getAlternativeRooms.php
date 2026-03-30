@@ -39,7 +39,7 @@ try {
         ORDER BY r.capacity ASC
         LIMIT 5
     ";
-    
+
     $stmtRooms = $pdo->prepare($query);
     $stmtRooms->bindValue(':capacity', $capacity, PDO::PARAM_INT);
     $stmtRooms->bindValue(':old_room_id', $oldRoomId, PDO::PARAM_INT);
@@ -48,14 +48,12 @@ try {
     $stmtRooms->bindValue(':bdate', $bdate, PDO::PARAM_STR);
     $stmtRooms->bindValue(':end_time_check', $endTime, PDO::PARAM_STR);
     $stmtRooms->bindValue(':start_time_check', $startTime, PDO::PARAM_STR);
-    
+
     $stmtRooms->execute();
     $altRooms = $stmtRooms->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode(["status" => "success", "data" => $altRooms]);
-
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     error_log("Get Alt Rooms Error: " . $e->getMessage());
     echo json_encode(["status" => "error", "message" => "Database error"]);
 }
-?>
