@@ -74,7 +74,7 @@ try {
 
     $stmt = $pdo->prepare("
         UPDATE Bookings 
-        SET status = :status 
+        SET status = :status, updated_at = NOW()
         WHERE booking_id = :booking_id
     ");
     
@@ -114,15 +114,23 @@ try {
                 if ($userStatus && $userStatus['is_banned'] == 0) {
                 $banSql = "UPDATE users SET is_banned = 1 WHERE user_id = :user_id";
                 $pdo->prepare($banSql)->execute(['user_id' => $userId]);
+
+                // ดึง user_id ของ System user สำหรับ banned_by
+                $stmtSys = $pdo->prepare("SELECT user_id FROM users WHERE email = 'system@internal' LIMIT 1");
+                $stmtSys->execute();
+                $systemUser = $stmtSys->fetch(PDO::FETCH_ASSOC);
+                $systemUserId = $systemUser ? $systemUser['user_id'] : null;
+
                 $logSql = "INSERT INTO Ban_Log 
                            (user_id, ban_startdate, ban_enddate, ban_reason, banned_by, unbanned_by, unbanned_date) 
                            VALUES 
-                           (:user_id, CURRENT_DATE(), DATE_ADD(CURRENT_DATE(), INTERVAL 1 MONTH), 'ยกเลิกการจองครบ 3 ครั้งในเดือนเดียว (Auto-Ban)', :banned_by, NULL, NULL)";
-                           
+                           (:user_id, CURRENT_DATE(), LAST_DAY(CURRENT_DATE()), 'ยกเลิกการจองครบ 3 ครั้งในเดือนเดียว (Auto-Ban)', :banned_by, :unbanned_by, LAST_DAY(CURRENT_DATE()))";
+
                 $stmtLog = $pdo->prepare($logSql);
                 $stmtLog->execute([
-                    'user_id' => $userId,
-                    'banned_by' => $userId 
+                    'user_id'     => $userId,
+                    'banned_by'   => $systemUserId,
+                    'unbanned_by' => $systemUserId
                 ]);
 
                 echo json_encode([
@@ -145,6 +153,7 @@ try {
                 ]);
             }
             exit; 
+        } 
         echo json_encode([
             "status" => "success",
             "message" => "ยกเลิกการจองสำเร็จ"

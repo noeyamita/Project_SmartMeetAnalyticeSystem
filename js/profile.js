@@ -22,6 +22,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const filterDateInput = document.getElementById("filter-date");
   const filterStatusSelect = document.getElementById("filter-status");
 
+  const ITEMS_PER_PAGE = 20;
+  let currentPage = 1;
+  let currentFilteredBookings = [];
+
   function displayUserInfo() {
     if (!currentUser) return;
 
@@ -299,7 +303,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (result.status === "success") {
         bookings = result.data;
-        renderBookings(bookings);
+        currentPage = 1;
+        currentFilteredBookings = bookings;
+        renderBookings(currentFilteredBookings);
       } else {
         showNotification(
           "ไม่สามารถโหลดประวัติการจองได้: " + result.message,
@@ -314,13 +320,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function renderBookings(data) {
     bookingTableBody.innerHTML = "";
+
     if (data.length === 0) {
       bookingTableBody.innerHTML =
         '<tr><td colspan="5" style="text-align: center; padding: 20px;">ไม่มีประวัติการจอง</td></tr>';
+      renderPagination(0);
       return;
     }
 
-    data.forEach((booking) => {
+    const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const pageData = data.slice(startIndex, endIndex);
+
+    pageData.forEach((booking) => {
       const row = bookingTableBody.insertRow();
       const statusId = parseInt(
         booking.status_id || booking.booking_status_id || booking.status || 1,
@@ -377,8 +392,115 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelectorAll(".cancel-booking-btn").forEach((btn) => {
       btn.addEventListener("click", handleCancelBooking);
     });
+
+    renderPagination(data.length);
   }
 
+  function renderPagination(totalItems) {
+    // ลบ pagination เก่าออกถ้ามี
+    const existingPagination = document.querySelector(".pagination-wrapper");
+    if (existingPagination) existingPagination.remove();
+
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    if (totalPages <= 1) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "pagination-wrapper";
+
+    // ปุ่ม Previous
+    const prevBtn = document.createElement("button");
+    prevBtn.className = "page-btn";
+    prevBtn.innerHTML = "&laquo;";
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderBookings(currentFilteredBookings);
+      }
+    });
+    wrapper.appendChild(prevBtn);
+
+    // ปุ่มหมายเลขหน้า (แสดงสูงสุด 5 หน้า)
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+      const firstBtn = document.createElement("button");
+      firstBtn.className = "page-btn";
+      firstBtn.textContent = "1";
+      firstBtn.addEventListener("click", () => {
+        currentPage = 1;
+        renderBookings(currentFilteredBookings);
+      });
+      wrapper.appendChild(firstBtn);
+      if (startPage > 2) {
+        const dots = document.createElement("span");
+        dots.className = "page-dots";
+        dots.textContent = "...";
+        wrapper.appendChild(dots);
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const btn = document.createElement("button");
+      btn.className = "page-btn" + (i === currentPage ? " active" : "");
+      btn.textContent = i;
+      const page = i;
+      btn.addEventListener("click", () => {
+        currentPage = page;
+        renderBookings(currentFilteredBookings);
+      });
+      wrapper.appendChild(btn);
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const dots = document.createElement("span");
+        dots.className = "page-dots";
+        dots.textContent = "...";
+        wrapper.appendChild(dots);
+      }
+      const lastBtn = document.createElement("button");
+      lastBtn.className = "page-btn";
+      lastBtn.textContent = totalPages;
+      lastBtn.addEventListener("click", () => {
+        currentPage = totalPages;
+        renderBookings(currentFilteredBookings);
+      });
+      wrapper.appendChild(lastBtn);
+    }
+
+    // ปุ่ม Next
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "page-btn";
+    nextBtn.innerHTML = "&raquo;";
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.addEventListener("click", () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderBookings(currentFilteredBookings);
+      }
+    });
+    wrapper.appendChild(nextBtn);
+
+    // แสดงจำนวนรายการ
+    const info = document.createElement("span");
+    info.className = "pagination-info";
+    const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+    const end = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
+    info.textContent = `${start}–${end} จาก ${totalItems} รายการ`;
+    wrapper.appendChild(info);
+
+    // ใส่ pagination หลังตาราง
+    const bookingTable = document.getElementById("booking-table");
+    bookingTable.parentNode.insertBefore(wrapper, bookingTable.nextSibling);
+  }
+
+  // ฟังก์ชันกรอง
   applyFilterBtn.addEventListener("click", () => {
     const filterDate = filterDateInput.value;
     const filterStatus = filterStatusSelect.value;
@@ -389,9 +511,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const isStatusMatch = !filterStatus || booking.status === filterStatus;
       return isDateMatch && isStatusMatch;
     });
-    renderBookings(filtered);
+    currentPage = 1;
+    currentFilteredBookings = filtered;
+    renderBookings(currentFilteredBookings);
   });
 
+  // ดูรายละเอียด
   function handleViewDetailsBooking(event) {
     const bookingId = event.target.dataset.id;
     const booking = bookings.find((b) => b.id == bookingId);
@@ -402,71 +527,75 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // ยกเลิกการจอง
   async function handleCancelBooking(event) {
     const bookingId = parseInt(event.target.dataset.id);
     const booking = bookings.find((b) => b.id === bookingId);
 
     if (!booking) return;
 
-    const confirmCancel = await Swal.fire({
-      title: "ยืนยันการยกเลิก?",
-      html: `คุณต้องการยกเลิกการจองห้อง <b>${booking.room}</b><br>วันที่ ${booking.date} ใช่หรือไม่?`,
-      icon: "question",
+    const confirm = await Swal.fire({
+      title: "ยืนยันการยกเลิก",
+      html: `ต้องการยกเลิกการจองห้อง <b>${booking.room}</b><br>วันที่ ${booking.date} ใช่หรือไม่?`,
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#dc3545",
+      confirmButtonColor: "#e53e3e",
       cancelButtonColor: "#6c757d",
-      confirmButtonText:
-        '<i class="fa-solid fa-trash-can"></i> ใช่, ยกเลิกการจอง',
-      cancelButtonText: "ปิด",
+      confirmButtonText: "ยืนยัน ยกเลิกการจอง",
+      cancelButtonText: "ไม่ใช่",
     });
 
-    if (confirmCancel.isConfirmed) {
-      try {
-        const response = await fetch(`${API_BASE}cancelBooking.php`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ booking_id: bookingId }),
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const response = await fetch(`${API_BASE}cancelBooking.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_id: bookingId }),
+      });
+
+      const result = await response.json();
+
+      if (result.status === "success") {
+        await Swal.fire({
+          title: "ยกเลิกการจองสำเร็จ",
+          html: result.message,
+          icon: "success",
+          confirmButtonColor: "#5b6de2",
         });
-
-        const result = await response.json();
-
-        if (result.status === "success") {
-          Swal.fire({
-            title: "สำเร็จ!",
-            html: result.message,
-            icon: "success",
-          });
-          loadBookingHistory();
-        } else if (result.status === "warning") {
-          Swal.fire({
-            title:
-              '<i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> แจ้งเตือนโควตา!',
-            html: result.message,
-            icon: "warning",
-            confirmButtonColor: "#f59e0b",
-          });
-          loadBookingHistory();
-        } else if (result.status === "banned") {
-          Swal.fire({
-            title:
-              '<i class="fa-solid fa-ban" style="color: #dc3545;"></i> ถูกระงับสิทธิ์!',
-            html: result.message,
-            icon: "error",
-            confirmButtonColor: "#dc3545",
-          }).then(() => {
-            window.location.reload();
-          });
-        } else {
-          Swal.fire("ผิดพลาด", result.message, "error");
-        }
-      } catch (error) {
-        console.error("Cancel booking error:", error);
-        Swal.fire(
-          "ข้อผิดพลาด",
-          "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์",
-          "error",
-        );
+        loadBookingHistory();
+      } else if (result.status === "warning") {
+        await Swal.fire({
+          title: "ยกเลิกการจองสำเร็จ",
+          html: result.message,
+          icon: "warning",
+          confirmButtonColor: "#f59e0b",
+        });
+        loadBookingHistory();
+      } else if (result.status === "banned") {
+        await Swal.fire({
+          title: "ถูกระงับสิทธิ์การจอง",
+          html: result.message,
+          icon: "error",
+          confirmButtonColor: "#e53e3e",
+        });
+        loadBookingHistory();
+      } else {
+        Swal.fire({
+          title: "เกิดข้อผิดพลาด",
+          html: result.message,
+          icon: "error",
+          confirmButtonColor: "#e53e3e",
+        });
       }
+    } catch (error) {
+      console.error("Cancel booking error:", error);
+      Swal.fire({
+        title: "เกิดข้อผิดพลาด",
+        text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
+        icon: "error",
+        confirmButtonColor: "#e53e3e",
+      });
     }
   }
 

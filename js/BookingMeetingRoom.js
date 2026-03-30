@@ -79,13 +79,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const qStart = sessionStorage.getItem("quickBook_start");
   const qEnd = sessionStorage.getItem("quickBook_end");
+  const qRoomId = sessionStorage.getItem("quickBook_room_id");
 
   if (qStart && qEnd) {
     document.getElementById("start_time").value = qStart;
     document.getElementById("end_time").value = qEnd;
     sessionStorage.removeItem("quickBook_start");
     sessionStorage.removeItem("quickBook_end");
-    setTimeout(() => searchRooms(), 500);
+    sessionStorage.removeItem("quickBook_room_id");
+
+    setTimeout(async () => {
+      await searchRooms();
+      if (qRoomId) {
+        // หาห้องที่ตรงกับที่กดจองทันที แล้วเปิด modal ให้ทันที
+        const targetRoom = availableRooms.find(
+          (r) => String(r.room_id) === String(qRoomId),
+        );
+        if (targetRoom && targetRoom.availability_status === "available") {
+          openBookingModal(targetRoom.room_id, false);
+        }
+      }
+    }, 500);
   }
 
   fetchEquipments();
@@ -235,12 +249,25 @@ async function confirmBooking() {
   confirmBtn.innerHTML =
     '<i class="fa-solid fa-circle-notch fa-spin"></i> กำลังดำเนินการ...';
 
+  // ตรวจสอบจำนวนคน
+  const modalAttendees = document.getElementById("modal_attendees");
+  const attendeesCount = parseInt(modalAttendees?.value) || 1;
+  if (selectedRoom?.capacity && attendeesCount > selectedRoom.capacity) {
+    showAlert(
+      `จำนวนผู้เข้าร่วมเกินความจุห้อง (สูงสุด ${selectedRoom.capacity} คน)`,
+      "error",
+    );
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = originalText;
+    return;
+  }
+
   const bookingData = {
     room_id: selectedRoom.room_id,
     booking_date: date,
     start_time: start,
     end_time: document.getElementById("end_time").value,
-    capacity: parseInt(document.getElementById("capacity").value) || 0,
+    capacity: attendeesCount,
     purpose: document.getElementById("meeting_title").value,
     table_layout_id: parseInt(
       document.querySelector('input[name="table_layout_id"]:checked')?.value ||
@@ -363,6 +390,18 @@ function renderRooms(rooms) {
 
 function openBookingModal(roomId, isOverride = false) {
   selectedRoom = availableRooms.find((r) => r.room_id == roomId);
+
+  // ดึงจำนวนคนจาก search form มาใส่ใน modal เป็นค่าเริ่มต้น
+  const capacityInput = document.getElementById("capacity");
+  const modalAttendees = document.getElementById("modal_attendees");
+  if (modalAttendees && capacityInput) {
+    modalAttendees.value = capacityInput.value || 1;
+    // กำหนด max ตามความจุห้อง
+    if (selectedRoom && selectedRoom.capacity) {
+      modalAttendees.max = selectedRoom.capacity;
+    }
+  }
+
   document.getElementById("bookingModal").classList.add("active");
   const modalTitle = document.querySelector(".modal-header h3");
   const currentUserRole = (

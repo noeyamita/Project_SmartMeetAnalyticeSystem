@@ -47,5 +47,18 @@ try {
     ]);
 
     $pdo->commit();
+
+    echo json_encode([
+        "status" => "success",
+        "message" => "ปลดแบนผู้ใช้สำเร็จ"
+    ]);
+
+} catch (Exception $e) {
+    $pdo->rollBack();
+    error_log("Unban Error: " . $e->getMessage());
+    echo json_encode([
+        "status" => "error",
+        "message" => "เกิดข้อผิดพลาด: " . $e->getMessage()
+    ]);
 }
 ?>
