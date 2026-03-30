@@ -19,6 +19,16 @@ try {
     $input = json_decode(file_get_contents('php://input'), true);
     $bookingId = isset($input['booking_id']) ? intval($input['booking_id']) : 0;
     $userId = $_SESSION['user_id'];
+    $stmtBanCheck = $pdo->prepare("SELECT is_banned FROM users WHERE user_id = :user_id");
+    $stmtBanCheck->execute(['user_id' => $userId]);
+    $userBanStatus = $stmtBanCheck->fetch(PDO::FETCH_ASSOC);
+    if ($userBanStatus && $userBanStatus['is_banned'] == 1) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "คุณถูกระงับสิทธิ์การจอง ไม่สามารถยกเลิกการจองได้"
+        ]);
+        exit;
+    }
 
     if ($bookingId <= 0) {
         echo json_encode([
@@ -115,7 +125,6 @@ try {
                 $banSql = "UPDATE users SET is_banned = 1 WHERE user_id = :user_id";
                 $pdo->prepare($banSql)->execute(['user_id' => $userId]);
 
-                // ดึง user_id ของ System user สำหรับ banned_by
                 $stmtSys = $pdo->prepare("SELECT user_id FROM users WHERE email = 'system@internal' LIMIT 1");
                 $stmtSys->execute();
                 $systemUser = $stmtSys->fetch(PDO::FETCH_ASSOC);
@@ -144,15 +153,17 @@ try {
             if ($remainingQuota == 1) {
                 echo json_encode([
                     "status" => "warning",
+                    "remaining" => $remainingQuota,
                     "message" => "ยกเลิกการจองสำเร็จ!<br><br><i class='fa-solid fa-triangle-exclamation' style='color: #f59e0b;'></i> <b>ระวัง:</b> คุณเหลือโควตายกเลิกได้อีกแค่ 1 ครั้งในเดือนนี้ หากเกินโควตาจะถูกระงับสิทธิ์ทันที"
                 ]);
             } else {
                 echo json_encode([
                     "status" => "success",
+                    "remaining" => $remainingQuota,
                     "message" => "ยกเลิกการจองสำเร็จ!<br><br><span style='font-size: 0.95em; color: #64748b;'><i class='fa-solid fa-circle-info'></i> คุณเหลือสิทธิ์ยกเลิกอีก <b>{$remainingQuota}</b> ครั้งในเดือนนี้</span>"
                 ]);
             }
-            exit; 
+            exit;
         } 
         echo json_encode([
             "status" => "success",

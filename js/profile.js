@@ -397,7 +397,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function renderPagination(totalItems) {
-    // ลบ pagination เก่าออกถ้ามี
     const existingPagination = document.querySelector(".pagination-wrapper");
     if (existingPagination) existingPagination.remove();
 
@@ -407,7 +406,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const wrapper = document.createElement("div");
     wrapper.className = "pagination-wrapper";
 
-    // ปุ่ม Previous
     const prevBtn = document.createElement("button");
     prevBtn.className = "page-btn";
     prevBtn.innerHTML = "&laquo;";
@@ -419,8 +417,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
     wrapper.appendChild(prevBtn);
-
-    // ปุ่มหมายเลขหน้า (แสดงสูงสุด 5 หน้า)
     const maxVisible = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(totalPages, startPage + maxVisible - 1);
@@ -474,7 +470,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       wrapper.appendChild(lastBtn);
     }
 
-    // ปุ่ม Next
     const nextBtn = document.createElement("button");
     nextBtn.className = "page-btn";
     nextBtn.innerHTML = "&raquo;";
@@ -486,8 +481,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
     wrapper.appendChild(nextBtn);
-
-    // แสดงจำนวนรายการ
     const info = document.createElement("span");
     info.className = "pagination-info";
     const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
@@ -495,12 +488,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     info.textContent = `${start}–${end} จาก ${totalItems} รายการ`;
     wrapper.appendChild(info);
 
-    // ใส่ pagination หลังตาราง
     const bookingTable = document.getElementById("booking-table");
     bookingTable.parentNode.insertBefore(wrapper, bookingTable.nextSibling);
   }
 
-  // ฟังก์ชันกรอง
   applyFilterBtn.addEventListener("click", () => {
     const filterDate = filterDateInput.value;
     const filterStatus = filterStatusSelect.value;
@@ -516,7 +507,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderBookings(currentFilteredBookings);
   });
 
-  // ดูรายละเอียด
   function handleViewDetailsBooking(event) {
     const bookingId = event.target.dataset.id;
     const booking = bookings.find((b) => b.id == bookingId);
@@ -527,17 +517,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // ยกเลิกการจอง
+  let cancelQuotaRemaining = 3;
   async function handleCancelBooking(event) {
     const bookingId = parseInt(event.target.dataset.id);
     const booking = bookings.find((b) => b.id === bookingId);
 
     if (!booking) return;
 
-    const confirm = await Swal.fire({
-      title: "ยืนยันการยกเลิก",
-      html: `ต้องการยกเลิกการจองห้อง <b>${booking.room}</b><br>วันที่ ${booking.date} ใช่หรือไม่?`,
-      icon: "warning",
+    const isLastChance = cancelQuotaRemaining === 1;
+    const confirmResult = await Swal.fire({
+      title: isLastChance
+        ? "⚠️ ยืนยันการยกเลิก (ครั้งสุดท้าย!)"
+        : "ยืนยันการยกเลิก",
+      html: isLastChance
+        ? `ต้องการยกเลิกการจองห้อง <b>${booking.room}</b><br>วันที่ ${booking.date} ใช่หรือไม่?<br><br><span style="color:#e53e3e; font-weight:600;">⚠️ นี่คือโควตาสุดท้ายของเดือนนี้ หากยกเลิกจะถูกระงับสิทธิ์ทันที!</span>`
+        : `ต้องการยกเลิกการจองห้อง <b>${booking.room}</b><br>วันที่ ${booking.date} ใช่หรือไม่?`,
+      icon: isLastChance ? "error" : "warning",
       showCancelButton: true,
       confirmButtonColor: "#e53e3e",
       cancelButtonColor: "#6c757d",
@@ -545,7 +540,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       cancelButtonText: "ไม่ใช่",
     });
 
-    if (!confirm.isConfirmed) return;
+    if (!confirmResult.isConfirmed) return;
 
     try {
       const response = await fetch(`${API_BASE}cancelBooking.php`, {
@@ -555,6 +550,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       const result = await response.json();
+      if (result.remaining !== undefined) {
+        cancelQuotaRemaining = result.remaining;
+      }
 
       if (result.status === "success") {
         await Swal.fire({
