@@ -90,7 +90,61 @@ try {
             WHERE user_id = :user_id
         ");
         $stmt->execute(['user_id' => $userId]);
+        $role = strtolower($_SESSION['role_name'] ?? 'normal');
 
+        if ($role !== 'admin') {
+            
+            $checkCancelSql = "SELECT COUNT(*) as month_cancels 
+                               FROM Bookings 
+                               WHERE user_id = :user_id 
+                               AND status = 2 
+                               AND MONTH(updated_at) = MONTH(CURRENT_DATE()) 
+                               AND YEAR(updated_at) = YEAR(CURRENT_DATE())";
+            $stmtCheck = $pdo->prepare($checkCancelSql);
+            $stmtCheck->execute(['user_id' => $userId]);
+            $cancelData = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+            
+            $cancelCount = (int)$cancelData['month_cancels'];
+   
+            if ($cancelCount >= 3) {
+                $stmtUser = $pdo->prepare("SELECT is_banned FROM users WHERE user_id = :user_id");
+                $stmtUser->execute(['user_id' => $userId]);
+                $userStatus = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+                if ($userStatus && $userStatus['is_banned'] == 0) {
+                $banSql = "UPDATE users SET is_banned = 1 WHERE user_id = :user_id";
+                $pdo->prepare($banSql)->execute(['user_id' => $userId]);
+                $logSql = "INSERT INTO Ban_Log 
+                           (user_id, ban_startdate, ban_enddate, ban_reason, banned_by, unbanned_by, unbanned_date) 
+                           VALUES 
+                           (:user_id, CURRENT_DATE(), DATE_ADD(CURRENT_DATE(), INTERVAL 1 MONTH), 'ยกเลิกการจองครบ 3 ครั้งในเดือนเดียว (Auto-Ban)', :banned_by, NULL, NULL)";
+                           
+                $stmtLog = $pdo->prepare($logSql);
+                $stmtLog->execute([
+                    'user_id' => $userId,
+                    'banned_by' => $userId 
+                ]);
+
+                echo json_encode([
+                    "status" => "banned",
+                    "message" => "คุณยกเลิกการจองครบ 3 ครั้งในเดือนนี้ ระบบได้ระงับสิทธิ์การจองของคุณเป็นเวลา 1 เดือน"
+                ]);
+                exit;
+                }
+            }
+            $remainingQuota = 3 - $cancelCount;
+            if ($remainingQuota == 1) {
+                echo json_encode([
+                    "status" => "warning",
+                    "message" => "ยกเลิกการจองสำเร็จ!<br><br><i class='fa-solid fa-triangle-exclamation' style='color: #f59e0b;'></i> <b>ระวัง:</b> คุณเหลือโควตายกเลิกได้อีกแค่ 1 ครั้งในเดือนนี้ หากเกินโควตาจะถูกระงับสิทธิ์ทันที"
+                ]);
+            } else {
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "ยกเลิกการจองสำเร็จ!<br><br><span style='font-size: 0.95em; color: #64748b;'><i class='fa-solid fa-circle-info'></i> คุณเหลือสิทธิ์ยกเลิกอีก <b>{$remainingQuota}</b> ครั้งในเดือนนี้</span>"
+                ]);
+            }
+            exit; 
         echo json_encode([
             "status" => "success",
             "message" => "ยกเลิกการจองสำเร็จ"

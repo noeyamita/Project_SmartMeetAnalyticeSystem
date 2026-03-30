@@ -64,6 +64,47 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+$user_id = $_SESSION['user_id'];
+if ($role !== 'admin') {
+    try {
+        $checkBanSql = "SELECT u.is_banned, b.ban_id, b.ban_enddate 
+                        FROM users u
+                        LEFT JOIN Ban_Log b ON u.user_id = b.user_id AND b.unbanned_date IS NULL
+                        WHERE u.user_id = :user_id 
+                        ORDER BY b.ban_id DESC LIMIT 1";
+        $stmtBan = $pdo->prepare($checkBanSql);
+        $stmtBan->execute(['user_id' => $user_id]);
+        $userData = $stmtBan->fetch(PDO::FETCH_ASSOC);
+
+        if ($userData && $userData['is_banned'] == 1) {
+        $today = date("Y-m-d");
+
+        if (!empty($userData['ban_enddate']) && $today >= $userData['ban_enddate']) {
+            $pdo->prepare("UPDATE users SET is_banned = 0 WHERE user_id = :user_id")->execute(['user_id' => $user_id]);
+            if ($userData['ban_id']) {
+                $pdo->prepare("UPDATE Ban_Log SET unbanned_date = CURRENT_DATE(), unbanned_by = 0 WHERE ban_id = :ban_id")
+                    ->execute(['ban_id' => $userData['ban_id']]);
+            }
+        } else {
+            if (!empty($userData['ban_enddate'])) {
+                $end_date_th = date("d/m/Y", strtotime($userData['ban_enddate']));
+                $ban_message = "บัญชีของคุณถูกระงับสิทธิ์การจองชั่วคราว (จะถูกปลดแบนวันที่ $end_date_th)";
+            } else {
+                $ban_message = "บัญชีของคุณถูกระงับสิทธิ์การจอง (กรุณาติดต่อผู้ดูแลระบบ)";
+            }
+            
+            echo json_encode([
+                "status" => "error", 
+                "message" => $ban_message
+            ]);
+            exit;
+        }
+    }
+    } catch (PDOException $e) {
+        error_log("Ban Check Error: " . $e->getMessage());
+    }
+}
+
 try {
     $required_fields = ['room_id', 'booking_date', 'start_time', 'end_time', 'capacity', 'purpose', 'table_layout_id'];
     foreach ($required_fields as $field) {
@@ -81,7 +122,6 @@ try {
     $purpose        = trim($input['purpose']);
     $table_layout_id = intval($input['table_layout_id']);
     $equipments     = $input['equipments'] ?? [];
-    $user_id        = $_SESSION['user_id'];
 
     $today = date('Y-m-d');
     if ($booking_date < $today) {

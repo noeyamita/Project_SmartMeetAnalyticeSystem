@@ -26,10 +26,13 @@ WORKDIR /var/www/html
 # Install PHPMailer
 RUN composer require phpmailer/phpmailer --no-interaction --no-progress
 
-# Cron job (ทุก 1 นาทีตอนทดสอบ)
-RUN echo " * * * * * /usr/local/bin/php /var/www/html/src/api/send_reminders.php >> /var/log/reminders.log 2>&1" > /etc/cron.d/send_reminders \
+
+# Cron job (ทุก 1 นาทีตอนทดสอบ + reset รายเดือน)
+RUN echo "* * * * * root /usr/local/bin/php /var/www/html/src/api/send_reminders.php >> /var/log/reminders.log 2>&1 0 0 1 * * root /usr/local/bin/php /var/www/html/src/api/resetMonthly.php >> /var/log/reset.log 2>&1" > /etc/cron.d/send_reminders \
     && chmod 0644 /etc/cron.d/send_reminders \
-    && crontab /etc/cron.d/send_reminders
+    && crontab /etc/cron.d/send_reminders \
+    && touch /var/log/reminders.log /var/log/reset.log \
+    && chmod 777 /var/log/reminders.log /var/log/reset.log
 
 # copy entrypoint
 COPY docker-entrypoint.sh /docker-entrypoint.sh
