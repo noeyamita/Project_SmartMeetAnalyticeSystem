@@ -117,14 +117,14 @@ try {
         }
     }
 
-    $room_id        = intval($input['room_id']);
-    $booking_date   = $input['booking_date'];
-    $start_time     = $input['start_time'];
-    $end_time       = $input['end_time'];
-    $capacity       = intval($input['capacity']);
-    $purpose        = trim($input['purpose']);
+    $room_id         = intval($input['room_id']);
+    $booking_date    = $input['booking_date'];
+    $start_time      = $input['start_time'];
+    $end_time        = $input['end_time'];
+    $capacity        = intval($input['capacity']);
+    $purpose         = trim($input['purpose']);
     $table_layout_id = intval($input['table_layout_id']);
-    $equipments     = $input['equipments'] ?? [];
+    $equipments      = $input['equipments'] ?? [];
 
     $today = date('Y-m-d');
     if ($booking_date < $today) {
@@ -200,6 +200,47 @@ try {
             echo json_encode(["status" => "error", "message" => "ห้องนี้ถูกจองในช่วงเวลาที่เลือกแล้ว"]);
             exit;
         } elseif ($role === 'executive') {
+
+            // เช็คว่า booking ที่ขอใช้ห้องแทนเป็นของ executive คนเดียวกันมั้ย
+            $placeholders = implode(',', array_fill(0, count($overlappingIds), '?'));
+            $checkOwnBooking = $pdo->prepare("
+                SELECT COUNT(*) FROM Bookings 
+                WHERE booking_id IN ($placeholders) AND user_id = ?
+            ");
+            $checkOwnBooking->execute([...$overlappingIds, $user_id]);
+            if ($checkOwnBooking->fetchColumn() > 0) {
+                echo json_encode([
+                    "status"  => "error",
+                    "message" => "ไม่สามารถขอใช้ห้องแทนการจองของตัวเองได้"
+                ]);
+                exit;
+            }
+
+            $checkDuplicate = $pdo->prepare("
+                SELECT COUNT(*) FROM Bookings
+                WHERE user_id = :user_id
+                AND room_id = :room_id
+                AND booking_date = :booking_date
+                AND start_time = :start_time
+                AND end_time = :end_time
+                AND status IN (3, 4)
+            ");
+            $checkDuplicate->execute([
+                'user_id'      => $user_id,
+                'room_id'      => $room_id,
+                'booking_date' => $booking_date,
+                'start_time'   => $start_time,
+                'end_time'     => $end_time,
+            ]);
+
+            if ($checkDuplicate->fetchColumn() > 0) {
+                echo json_encode([
+                    "status"  => "error",
+                    "message" => "คุณเคยส่งคำขอห้องนี้ในช่วงเวลานี้แล้ว ไม่สามารถขอซ้ำได้"
+                ]);
+                exit;
+            }
+
             $bookingStatus = 3;
         } elseif ($role === 'admin') {
             $bookingStatus = 1;
@@ -228,15 +269,15 @@ try {
     ");
 
     $insertBooking->execute([
-        'user_id'        => $user_id,
-        'room_id'        => $room_id,
-        'booking_date'   => $booking_date,
-        'start_time'     => $start_time,
-        'end_time'       => $end_time,
-        'purpose'        => $purpose,
+        'user_id'         => $user_id,
+        'room_id'         => $room_id,
+        'booking_date'    => $booking_date,
+        'start_time'      => $start_time,
+        'end_time'        => $end_time,
+        'purpose'         => $purpose,
         'attendees_count' => $capacity,
-        'table_layout'   => $table_layout_id,
-        'status'         => $bookingStatus
+        'table_layout'    => $table_layout_id,
+        'status'          => $bookingStatus
     ]);
 
     $booking_id = $pdo->lastInsertId();
@@ -272,7 +313,9 @@ try {
             }
         }
     }
+
     $pdo->commit();
+
     $successMessage = "จองห้องประชุมสำเร็จ";
     if ($bookingStatus === 3 && $role === 'executive') {
         $successMessage = "ส่งคำขอใช้ห้องแทนเรียบร้อยแล้ว รอแอดมินอนุมัติ";
@@ -281,22 +324,18 @@ try {
     }
 
     echo json_encode([
-        "status"       => "success",
-        "message"      => $successMessage,
-        "booking_id"   => $booking_id,
-        "booking_time" => $start_time . " - " . $end_time,
+        "status"             => "success",
+        "message"            => $successMessage,
+        "booking_id"         => $booking_id,
+        "booking_time"       => $start_time . " - " . $end_time,
         "displaced_bookings" => $displacedBookings
     ]);
 } catch (PDOException $e) {
-    if ($pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
+    if ($pdo->inTransaction()) $pdo->rollBack();
     error_log("Booking Error: " . $e->getMessage());
     echo json_encode(["status" => "error", "message" => "Database Error: " . $e->getMessage()]);
 } catch (Exception $e) {
-    if ($pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
+    if ($pdo->inTransaction()) $pdo->rollBack();
     error_log("Booking Error: " . $e->getMessage());
     echo json_encode(["status" => "error", "message" => "Error: " . $e->getMessage()]);
 }
