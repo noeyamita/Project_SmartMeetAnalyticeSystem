@@ -22,7 +22,6 @@ class NotificationHelper
     public function sendNotification($user_id, $booking_id, $type, $message, $email, $subject)
     {
         try {
-            //บันทึก in-app (INSERT IGNORE ป้องกันการแจ้งเตือนซ้ำ)
             $stmt = $this->pdo->prepare("
                 INSERT IGNORE INTO Notifications (user_id, booking_id, type, message, is_read, email_sent, sent_at)
                 VALUES (?, ?, ?, ?, 0, 0, NOW())
@@ -32,6 +31,7 @@ class NotificationHelper
             if ($stmt->rowCount() === 0) {
                 return true;
             }
+
             $emailSent = $this->sendEmail($email, $subject, $message);
 
             if ($emailSent) {
@@ -76,7 +76,6 @@ class NotificationHelper
         }
     }
 
-    // สร้างTemplate สำหรับ Email
     private function buildEmailHTML($body)
     {
         $htmlBody = nl2br(htmlspecialchars($body));
@@ -98,24 +97,21 @@ class NotificationHelper
         </div>";
     }
 
-    public function notifyRoomMoved($booking_id)
+    public function notifyDisplaced($booking_id, $displaced_room_id)
     {
         try {
             $stmt = $this->pdo->prepare("
                 SELECT 
                     b.booking_id, b.user_id, b.booking_date,
                     b.start_time, b.end_time, b.purpose,
-                    b.room_id, b.original_room_id,
                     u.email, u.fname, u.lname,
-                    mr_new.room_name AS new_room_name,
-                    mr_old.room_name AS old_room_name
+                    mr.room_name AS displaced_room_name
                 FROM Bookings b
                 JOIN users u ON b.user_id = u.user_id
-                JOIN Meeting_Rooms mr_new ON b.room_id = mr_new.room_id
-                LEFT JOIN Meeting_Rooms mr_old ON b.original_room_id = mr_old.room_id
+                JOIN Meeting_Rooms mr ON mr.room_id = ?
                 WHERE b.booking_id = ?
             ");
-            $stmt->execute([$booking_id]);
+            $stmt->execute([$displaced_room_id, $booking_id]);
             $booking = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$booking) return false;
@@ -124,16 +120,65 @@ class NotificationHelper
             $start    = substr($booking['start_time'], 0, 5);
             $end      = substr($booking['end_time'], 0, 5);
             $fullName = $booking['fname'] . ' ' . $booking['lname'];
-            $oldRoom  = $booking['old_room_name'] ?? 'ไม่ระบุ';
-            $newRoom  = $booking['new_room_name'];
+            $room     = $booking['displaced_room_name'];
+
+            $message = "เรียน คุณ{$fullName}\n\n"
+                . "การจองของคุณถูกย้ายออกจากห้องประชุม\n"
+                . "หัวข้อ: {$booking['purpose']}\n"
+                . "วันที่: {$date}\n"
+                . "เวลา: {$start} - {$end}\n"
+                . "ย้ายจาก: {$room}\n"
+                . "กรุณาติดต่อผู้ดูแลระบบเพื่อจัดห้องประชุมใหม่";
+
+            return $this->sendNotification(
+                $booking['user_id'],
+                $booking_id,
+                'room_moved',
+                $message,
+                $booking['email'],
+                "แจ้งเตือน: การจองของคุณถูกย้ายออกจากห้อง - {$date}"
+            );
+        } catch (Exception $e) {
+            error_log("notifyDisplaced error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function notifyRoomMoved($booking_id)
+    {
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT 
+                    b.booking_id, b.user_id, b.booking_date,
+                    b.start_time, b.end_time, b.purpose,
+                    u.email, u.fname, u.lname,
+                    mr_old.room_name AS old_room_name,
+                    mr_new.room_name AS new_room_name
+                FROM Bookings b
+                JOIN users u ON b.user_id = u.user_id
+                LEFT JOIN Meeting_Rooms mr_old ON b.original_room_id = mr_old.room_id
+                LEFT JOIN Meeting_Rooms mr_new ON b.room_id = mr_new.room_id
+                WHERE b.booking_id = ?
+            ");
+            $stmt->execute([$booking_id]);
+            $booking = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$booking) return false;
+
+            $date        = date('d/m/Y', strtotime($booking['booking_date']));
+            $start       = substr($booking['start_time'], 0, 5);
+            $end         = substr($booking['end_time'], 0, 5);
+            $fullName    = $booking['fname'] . ' ' . $booking['lname'];
+            $oldRoomName = $booking['old_room_name'] ?? 'ไม่ระบุ';
+            $newRoomName = $booking['new_room_name'] ?? 'ไม่ระบุ';
 
             $message = "เรียน คุณ{$fullName}\n\n"
                 . "การจองของคุณถูกย้ายห้องประชุม\n"
                 . "หัวข้อ: {$booking['purpose']}\n"
                 . "วันที่: {$date}\n"
                 . "เวลา: {$start} - {$end}\n"
-                . "ย้ายจาก: {$oldRoom}\n"
-                . "ไปยัง: {$newRoom}";
+                . "ย้ายจาก: {$oldRoomName}\n"
+                . "ไปยัง: {$newRoomName}";
 
             return $this->sendNotification(
                 $booking['user_id'],
