@@ -510,11 +510,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   function handleViewDetailsBooking(event) {
     const bookingId = event.target.dataset.id;
     const booking = bookings.find((b) => b.id == bookingId);
-    if (booking) {
-      alert(
-        `รายละเอียดการจอง:\n\nห้อง: ${booking.room}\nวันที่: ${booking.date}\nเวลา: ${booking.time}\nหัวข้อการประชุม: ${booking.purpose}\nจำนวนคน: ${booking.attendees} คน`,
-      );
+    if (!booking) return;
+
+    const isMoved = booking.is_moved && booking.original_room;
+    const roomDetail = booking.floor
+      ? `${booking.room} (${booking.floor})`
+      : booking.room;
+
+    let html = `
+      <div style="text-align:left; line-height:1.8;">
+        <p><i class="fa-solid fa-door-open" style="color:#5b6de2;"></i> <strong>ห้อง:</strong> ${roomDetail}</p>
+        <p><i class="fa-solid fa-calendar-day" style="color:#5b6de2;"></i> <strong>วันที่:</strong> ${booking.date}</p>
+        <p><i class="fa-regular fa-clock" style="color:#5b6de2;"></i> <strong>เวลา:</strong> ${booking.time}</p>
+        <p><i class="fa-solid fa-comment-dots" style="color:#5b6de2;"></i> <strong>หัวข้อ:</strong> ${booking.purpose}</p>
+        <p><i class="fa-solid fa-users" style="color:#5b6de2;"></i> <strong>จำนวนคน:</strong> ${booking.attendees} คน</p>
+    `;
+
+    if (isMoved) {
+      html += `
+        <hr style="margin:10px 0; border-color:#e2e8f0;">
+        <p style="color:#e53e3e;"><i class="fa-solid fa-right-left"></i> <strong>ย้ายจาก:</strong> ${booking.original_room}</p>
+        <p style="color:#10b981;"><i class="fa-solid fa-location-dot"></i> <strong>ไปยัง:</strong> ${booking.new_room}</p>
+      `;
     }
+
+    html += "</div>";
+
+    Swal.fire({
+      title:
+        "<i class='fa-solid fa-calendar-check' style='color:#5b6de2;'></i> รายละเอียดการจอง",
+      html: html,
+      confirmButtonText: "ปิด",
+      confirmButtonColor: "#5b6de2",
+      width: 480,
+    });
   }
 
   let cancelQuotaRemaining = 3;
