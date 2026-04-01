@@ -20,7 +20,8 @@ try {
             u.email,
             u.fname,
             u.lname,
-            mr.room_name
+            mr.room_name,
+            mr.floor_number
         FROM Bookings b
         JOIN users u ON b.user_id = u.user_id
         JOIN Meeting_Rooms mr ON b.room_id = mr.room_id
@@ -48,7 +49,7 @@ try {
             $start    = sprintf('%02d:%02d', $startH, $startM);
             $end      = sprintf('%02d:%02d', $endH,   $endM);
             $fullName = $booking['fname'] . ' ' . $booking['lname'];
-            $room     = $booking['room_name'];
+            $room     = $booking['room_name'] . (!empty($booking['floor_number']) ? " ({$booking['floor_number']})" : "");
             $purpose  = $booking['purpose'];
             $bid      = $booking['booking_id'];
 

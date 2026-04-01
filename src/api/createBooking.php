@@ -154,6 +154,12 @@ try {
 
     $start_time .= ':00';
     $end_time   .= ':00';
+    $startSeconds = strtotime($booking_date . ' ' . $start_time);
+    $endSeconds   = strtotime($booking_date . ' ' . $end_time);
+    if (($endSeconds - $startSeconds) < 1800) {
+        echo json_encode(['status' => 'error', 'message' => 'ระยะเวลาจองต้องไม่ต่ำกว่า 30 นาที']);
+        exit;
+    }
 
     $checkCapacity = $pdo->prepare("SELECT room_name, capacity, open_time, close_time FROM Meeting_Rooms WHERE room_id = :room_id");
     $checkCapacity->execute(['room_id' => $room_id]);
@@ -201,7 +207,7 @@ try {
             exit;
         } elseif ($role === 'executive') {
 
-            // เช็คว่า booking ที่ขอใช้ห้องแทนเป็นของ executive คนเดียวกันมั้ย
+            // เช็คว่า booking ที่ overlap เป็นของ executive คนเดียวกันมั้ย
             $placeholders = implode(',', array_fill(0, count($overlappingIds), '?'));
             $checkOwnBooking = $pdo->prepare("
                 SELECT COUNT(*) FROM Bookings 
@@ -216,6 +222,7 @@ try {
                 exit;
             }
 
+            // เช็คว่า executive คนนี้เคยขอห้องนี้ในวันและช่วงเวลาเดิมแล้วโดน displace มาแล้วมั้ย
             $checkDuplicate = $pdo->prepare("
                 SELECT COUNT(*) FROM Bookings
                 WHERE user_id = :user_id

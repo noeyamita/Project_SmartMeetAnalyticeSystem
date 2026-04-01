@@ -97,6 +97,11 @@ class NotificationHelper
         </div>";
     }
 
+    private function formatRoom($room_name, $floor_number)
+    {
+        return $room_name . (!empty($floor_number) ? " ({$floor_number})" : "");
+    }
+
     public function notifyDisplaced($booking_id, $displaced_room_id)
     {
         try {
@@ -105,7 +110,8 @@ class NotificationHelper
                     b.booking_id, b.user_id, b.booking_date,
                     b.start_time, b.end_time, b.purpose,
                     u.email, u.fname, u.lname,
-                    mr.room_name AS displaced_room_name
+                    mr.room_name AS displaced_room_name,
+                    mr.floor_number AS displaced_floor
                 FROM Bookings b
                 JOIN users u ON b.user_id = u.user_id
                 JOIN Meeting_Rooms mr ON mr.room_id = ?
@@ -120,7 +126,7 @@ class NotificationHelper
             $start    = substr($booking['start_time'], 0, 5);
             $end      = substr($booking['end_time'], 0, 5);
             $fullName = $booking['fname'] . ' ' . $booking['lname'];
-            $room     = $booking['displaced_room_name'];
+            $room     = $this->formatRoom($booking['displaced_room_name'], $booking['displaced_floor']);
 
             $message = "เรียน คุณ{$fullName}\n\n"
                 . "การจองของคุณถูกย้ายออกจากห้องประชุม\n"
@@ -153,7 +159,9 @@ class NotificationHelper
                     b.start_time, b.end_time, b.purpose,
                     u.email, u.fname, u.lname,
                     mr_old.room_name AS old_room_name,
-                    mr_new.room_name AS new_room_name
+                    mr_old.floor_number AS old_floor,
+                    mr_new.room_name AS new_room_name,
+                    mr_new.floor_number AS new_floor
                 FROM Bookings b
                 JOIN users u ON b.user_id = u.user_id
                 LEFT JOIN Meeting_Rooms mr_old ON b.original_room_id = mr_old.room_id
@@ -169,8 +177,8 @@ class NotificationHelper
             $start       = substr($booking['start_time'], 0, 5);
             $end         = substr($booking['end_time'], 0, 5);
             $fullName    = $booking['fname'] . ' ' . $booking['lname'];
-            $oldRoomName = $booking['old_room_name'] ?? 'ไม่ระบุ';
-            $newRoomName = $booking['new_room_name'] ?? 'ไม่ระบุ';
+            $oldRoomName = $this->formatRoom($booking['old_room_name'] ?? 'ไม่ระบุ', $booking['old_floor']);
+            $newRoomName = $this->formatRoom($booking['new_room_name'] ?? 'ไม่ระบุ', $booking['new_floor']);
 
             $message = "เรียน คุณ{$fullName}\n\n"
                 . "การจองของคุณถูกย้ายห้องประชุม\n"

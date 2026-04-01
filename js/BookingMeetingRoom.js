@@ -175,6 +175,11 @@ async function searchRooms() {
     return;
   }
 
+  if (timeToMinutes(end) - timeToMinutes(start) < 30) {
+    showAlert("ระยะเวลาจองต้องไม่ต่ำกว่า 30 นาที");
+    return;
+  }
+
   if (!isNotPastTime(date, start)) {
     showAlert("ไม่สามารถจองเวลาที่ผ่านมาแล้ว");
     return;
