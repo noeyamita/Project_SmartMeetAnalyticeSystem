@@ -201,4 +201,51 @@ class NotificationHelper
             return false;
         }
     }
+
+    public function notifyCancelledByAdmin($booking_id)
+    {
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT 
+                    b.booking_id, b.user_id, b.booking_date,
+                    b.start_time, b.end_time, b.purpose,
+                    u.email, u.fname, u.lname,
+                    mr.room_name, mr.floor_number
+                FROM Bookings b
+                JOIN users u ON b.user_id = u.user_id
+                JOIN Meeting_Rooms mr ON b.room_id = mr.room_id
+                WHERE b.booking_id = ?
+            ");
+            $stmt->execute([$booking_id]);
+            $booking = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$booking) return false;
+
+            $date     = date('d/m/Y', strtotime($booking['booking_date']));
+            $start    = substr($booking['start_time'], 0, 5);
+            $end      = substr($booking['end_time'], 0, 5);
+            $fullName = $booking['fname'] . ' ' . $booking['lname'];
+            $room     = $this->formatRoom($booking['room_name'], $booking['floor_number']);
+
+            $message = "เรียน คุณ{$fullName}\n\n"
+                . "การจองของคุณถูกยกเลิกโดยผู้ดูแลระบบ\n"
+                . "หัวข้อ: {$booking['purpose']}\n"
+                . "วันที่: {$date}\n"
+                . "เวลา: {$start} - {$end}\n"
+                . "ห้อง: {$room}\n"
+                . "กรุณาติดต่อผู้ดูแลระบบหากต้องการข้อมูลเพิ่มเติม";
+
+            return $this->sendNotification(
+                $booking['user_id'],
+                $booking_id,
+                'room_moved',
+                $message,
+                $booking['email'],
+                "แจ้งเตือน: การจองของคุณถูกยกเลิก - {$date}"
+            );
+        } catch (Exception $e) {
+            error_log("notifyCancelledByAdmin error: " . $e->getMessage());
+            return false;
+        }
+    }
 }
