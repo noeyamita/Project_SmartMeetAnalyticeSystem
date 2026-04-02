@@ -93,7 +93,7 @@ try {
         if ($updated->rowCount() === 0) {
             $pdo->prepare("
                 INSERT INTO Ban_Log (user_id, ban_startdate, ban_enddate, ban_reason, banned_by, unbanned_by, unbanned_date)
-                VALUES (?, ?, ?, 'ไม่ทราบเหตุผล (ปลดแบนโดย Admin)', ?, ?, ?)
+                VALUES (?, ?, ?, 'ปลดแบนโดย Admin', ?, ?, ?)
             ")->execute([$target_id, $today, $today, $admin_id, $admin_id, $today]);
         }
     }
