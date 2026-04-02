@@ -2,7 +2,7 @@
 session_start();
 header('Content-Type: application/json');
 
-require_once __DIR__ . '/../database.php'; 
+require_once __DIR__ . '/../database.php';
 
 $database = new Database();
 $pdo = $database->getConnection();
@@ -31,13 +31,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         if (!empty($user['is_banned']) && $user['is_banned'] == 1) {
-        echo json_encode([
-            'success' => false,
-            'banned'  => true,
-            'message' => 'บัญชีของท่านถูกแบน กรุณาติดต่อแอดมิน'
-        ]);
-        exit;
-    }
+            // ดึง ban_enddate ล่าสุดของ user นี้
+            $banStmt = $pdo->prepare("
+                SELECT ban_enddate, banned_by, ban_reason
+                FROM Ban_Log 
+                WHERE user_id = ? 
+                ORDER BY ban_id DESC 
+                LIMIT 1
+            ");
+            $banStmt->execute([$user['user_id']]);
+            $banLog = $banStmt->fetch(PDO::FETCH_ASSOC);
+
+            $today = date('Y-m-d');
+            // auto-ban คือมี ban_enddate และไม่ใช่ 9999-12-31 (admin ban ไม่มีวันสิ้นสุด)
+            $isAutoban = $banLog && $banLog['ban_enddate'] !== '9999-12-31';
+
+            // ถ้าเป็น auto-ban และถึงวัน ban_enddate แล้ว ให้ปลดแบนอัตโนมัติ
+            if ($isAutoban && $banLog['ban_enddate'] <= $today) {
+                $pdo->prepare("UPDATE users SET is_banned = 0, cancellation_count = 0, cancellation_reset = 1 WHERE user_id = ?")
+                    ->execute([$user['user_id']]);
+                $pdo->prepare("UPDATE Ban_Log SET unbanned_date = ? WHERE user_id = ? AND unbanned_date IS NULL")
+                    ->execute([$today, $user['user_id']]);
+                // ปลดแบนแล้ว ให้ login ผ่านได้ต่อ
+            } else {
+                // ยังแบนอยู่ — แสดงวันที่กลับมาได้ถ้าเป็น auto-ban
+                $returnDate = ($isAutoban && !empty($banLog['ban_enddate'])) ? $banLog['ban_enddate'] : '';
+                $banReason = !empty($banLog['ban_reason']) ? $banLog['ban_reason'] : '';
+                echo json_encode([
+                    'success'     => false,
+                    'banned'      => true,
+                    'return_date' => $returnDate,
+                    'ban_reason'  => $banReason,
+                    'message'     => 'บัญชีของท่านถูกแบน กรุณาติดต่อแอดมิน'
+                ]);
+                exit;
+            }
+        }
 
         $_SESSION = [];
         session_destroy();
@@ -68,7 +97,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'role_name' => $role['role_name'] ?? 'Normal',
             'user_name' => $user['fname'] . ' ' . $user['lname']
         ]);
-
     } catch (PDOException $e) {
         echo json_encode([
             'success' => false,
@@ -76,4 +104,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
     }
 }
-?>
