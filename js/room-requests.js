@@ -210,3 +210,7 @@ async function skipMoveRoom() {
   document.getElementById("altRoomModal").classList.remove("active");
   setTimeout(processNextDisplacedBooking, 500);
 }
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {};
+}

@@ -137,3 +137,7 @@ function notifySidebarBadge(count) {
     console.warn("notifySidebarBadge error:", e);
   }
 }
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { renderNotifications, updateUnreadCount, markAllRead };
+}

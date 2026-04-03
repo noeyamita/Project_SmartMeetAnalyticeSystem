@@ -423,3 +423,16 @@ window.addEventListener("beforeunload", () => {
   if (monthlyChart) monthlyChart.destroy();
   if (donutChart) donutChart.destroy();
 });
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    showAlert,
+    switchTab,
+    startAutoRefresh,
+    quickBookRoom,
+    renderMonthlyChart,
+    renderDonutChart,
+    loadUserDashboard,
+    loadAdminDashboard,
+  };
+}

@@ -630,3 +630,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // เริ่มต้นให้แสดงแท็บ Profile
   document.getElementById("tab-profile").click();
 });
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {};
+}

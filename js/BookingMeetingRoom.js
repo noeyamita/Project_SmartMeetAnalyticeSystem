@@ -533,3 +533,7 @@ function skipMoveRoom() {
     setTimeout(processNextDisplacedBooking, 500);
   }
 }
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { isValidTime, timeToMinutes, isWithinRoleAdvanceLimit };
+}

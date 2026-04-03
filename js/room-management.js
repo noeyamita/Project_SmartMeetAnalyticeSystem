@@ -452,3 +452,7 @@ async function confirmMoveRoom() {
 function skipMoveRoom() {
   setTimeout(processNextDisplacedBooking, 300);
 }
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { showToast, showLoading, hideLoading, resetForm };
+}

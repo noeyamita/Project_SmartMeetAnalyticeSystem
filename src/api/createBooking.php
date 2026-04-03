@@ -180,12 +180,15 @@ try {
         exit;
     }
 
+    $pdo->beginTransaction();
+
     $checkAvailability = $pdo->prepare("
         SELECT booking_id, start_time, end_time 
         FROM Bookings 
         WHERE room_id = :room_id 
         AND booking_date = :booking_date 
         AND status = 1
+        FOR UPDATE
     ");
     $checkAvailability->execute(['room_id' => $room_id, 'booking_date' => $booking_date]);
     $existingBookings = $checkAvailability->fetchAll(PDO::FETCH_ASSOC);
@@ -203,6 +206,7 @@ try {
 
     if ($hasOverlap) {
         if ($role === 'normal') {
+            $pdo->rollBack();
             echo json_encode(["status" => "error", "message" => "ห้องนี้ถูกจองในช่วงเวลาที่เลือกแล้ว"]);
             exit;
         } elseif ($role === 'executive') {
@@ -215,6 +219,7 @@ try {
             ");
             $checkOwnBooking->execute([...$overlappingIds, $user_id]);
             if ($checkOwnBooking->fetchColumn() > 0) {
+                $pdo->rollBack();
                 echo json_encode([
                     "status"  => "error",
                     "message" => "ไม่สามารถขอใช้ห้องแทนการจองของตัวเองได้"
@@ -241,6 +246,7 @@ try {
             ]);
 
             if ($checkDuplicate->fetchColumn() > 0) {
+                $pdo->rollBack();
                 echo json_encode([
                     "status"  => "error",
                     "message" => "คุณเคยส่งคำขอห้องนี้ในช่วงเวลานี้แล้ว ไม่สามารถขอซ้ำได้"
@@ -253,8 +259,6 @@ try {
             $bookingStatus = 1;
         }
     }
-
-    $pdo->beginTransaction();
 
     $displacedBookings = [];
     if ($hasOverlap && $role === 'admin' && count($overlappingIds) > 0) {
