@@ -3,9 +3,15 @@ RewriteEngine On
 # redirect root ไป login
 RewriteRule ^$ /html/login.html [L,R=302]
 
-# ถ้าเรียก .html โดยไม่มี /html/ นำหน้า ให้ redirect
+# ถ้าเรียกไฟล์ .html ตรงๆ ให้หาใน /html/
 RewriteCond %{REQUEST_URI} !^/html/
-RewriteCond %{REQUEST_URI} !^/src/
-RewriteCond %{REQUEST_URI} !^/css/
-RewriteCond %{REQUEST_URI} !^/js/
+RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^([^/]+\.html)$ /html/$1 [L,R=302]
+
+# ถ้าเรียก css/ จาก /html/ ให้ redirect ไปที่ /css/ จริงๆ
+RewriteCond %{REQUEST_URI} ^/html/css/(.*)$
+RewriteRule ^html/css/(.*)$ /css/$1 [L]
+
+# ถ้าเรียก src/ จาก /html/ ให้ redirect ไปที่ /src/ จริงๆ
+RewriteCond %{REQUEST_URI} ^/html/src/(.*)$
+RewriteRule ^html/src/(.*)$ /src/$1 [L]
