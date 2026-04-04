@@ -1,0 +1,11 @@
+RewriteEngine On
+
+# redirect root ไป login
+RewriteRule ^$ /html/login.html [L,R=302]
+
+# ถ้าเรียก .html โดยไม่มี /html/ นำหน้า ให้ redirect
+RewriteCond %{REQUEST_URI} !^/html/
+RewriteCond %{REQUEST_URI} !^/src/
+RewriteCond %{REQUEST_URI} !^/css/
+RewriteCond %{REQUEST_URI} !^/js/
+RewriteRule ^([^/]+\.html)$ /html/$1 [L,R=302]
