@@ -11,19 +11,13 @@ class Database
 
     public function __construct()
     {
-        // ดึงค่าจาก Environment Variables
         $this->host = getenv('DB_HOST') ?: 'mysql';
         $this->user = getenv('DB_USER') ?: 'root';
         $this->pass = getenv('DB_PASSWORD') ?: '1234';
         $this->db   = getenv('DB_NAME') ?: 'db_amita';
-
-        //deploy
-        $this->host = getenv('DB_HOST') ?: 'localhost';
-        $this->user = getenv('DB_USER') ?: 'root';
-        $this->pass = getenv('DB_PASSWORD') ?: '';
-        $this->db   = getenv('DB_NAME') ?: 'railway';
         $this->port = getenv('DB_PORT') ?: '3306';
     }
+
     public function getConnection()
     {
         if ($this->pdo !== null) {
