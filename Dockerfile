@@ -23,9 +23,21 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
+# ✅ COPY ไฟล์โปรเจกต์ทั้งหมดเข้า container
+COPY . /var/www/html/
+
+# ✅ ตั้ง DocumentRoot ชี้ไปที่ /var/www/html/html และเปิด login.html เป็นหน้าแรก
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/html|g' \
+    /etc/apache2/sites-available/000-default.conf \
+    && echo '<Directory /var/www/html/html>\n\
+    DirectoryIndex login.html index.php index.html\n\
+    Options Indexes FollowSymLinks\n\
+    AllowOverride All\n\
+    Require all granted\n\
+    </Directory>' >> /etc/apache2/apache2.conf
+
 # Install PHPMailer
 RUN composer require phpmailer/phpmailer --no-interaction --no-progress
-
 
 # Cron job
 RUN echo "* * * * * root /usr/local/bin/php /var/www/html/src/api/send_reminders.php >> /var/log/reminders.log 2>&1\n\
