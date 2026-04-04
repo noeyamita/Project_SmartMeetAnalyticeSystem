@@ -304,6 +304,11 @@ select:focus {
     animation: none;
 }
 
+.chip.unavailable {
+    background: #ffa200;
+    animation: none;
+}
+
 .room-card .btn {
     padding: 8px 16px;
     background: #667eea;
