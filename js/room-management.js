@@ -1,6 +1,7 @@
 const API_URL = "../src/api/room-management.php";
 let Meeting_Rooms = [];
 let statuses = [];
+let airConditionerOptions = [];
 let isEditing = false;
 let displacedBookingsQueue = [];
 let currentDisplacedBookingId = null;
@@ -21,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadStatuses();
   loadRooms();
   setupEventListeners();
+  loadAirConditionerOptions();
 });
 
 function setupEventListeners() {
@@ -58,7 +60,65 @@ async function loadStatuses() {
   }
 }
 
+async function loadAirConditionerOptions() {
+  try {
+    const response = await fetch(`${API_URL}?action=getAirConditionerOptions`);
+    const data = await response.json();
+    if (data.success) {
+      airConditionerOptions = data.data;
+      populateAirConditionerDropdown();
+    }
+  } catch (error) {
+    console.error("Error loading air conditioner options:", error);
+  }
+}
+
+function populateAirConditionerDropdown() {
+  const airConditionerSelect = document.getElementById("air_conditioner");
+  airConditionerSelect.innerHTML = airConditionerOptions
+    .map(
+      (option) =>
+        `<option value="${option.statusair_id}">${option.statusair_name}</option>`,
+    )
+    .join("");
+}
+
 function populateStatusDropdown() {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
   const statusSelect = document.getElementById("status");
   statusSelect.innerHTML = statuses
     .map(
@@ -126,7 +186,7 @@ async function loadRooms() {
 function displayRooms(roomList) {
   if (roomList.length === 0) {
     roomTableBody.innerHTML =
-      '<tr><td colspan="9" class="text-center">ไม่พบข้อมูลห้องประชุม</td></tr>';
+      '<tr><td colspan="10" class="text-center">ไม่พบข้อมูลห้องประชุม</td></tr>';
     return;
   }
 
@@ -138,6 +198,16 @@ function displayRooms(roomList) {
         : "ไม่ทราบสถานะ";
       const statusClass =
         room.status == 1 ? "status-available" : "status-unavailable";
+
+      const airConditionerInfo = airConditionerOptions.find(
+        (ac) => ac.statusair_id == room.air_conditioner,
+      );
+      const airConditionerName = airConditionerInfo
+        ? airConditionerInfo.statusair_name
+        : "ไม่ทราบ";
+      const airConditionerClass =
+        room.air_conditioner == 1 ? "status-available" : "status-unavailable";
+
       const imageCell = room.image_url
         ? `<img src="${room.image_url}" alt="${room.room_name}" class="room-image" onclick="viewImage('${room.image_url}')">`
         : "-";
@@ -151,6 +221,7 @@ function displayRooms(roomList) {
             <td>${room.room_size}</td>
             <td>${room.floor_number}</td>
             <td><span class="status-badge ${statusClass}">${statusName}</span></td>
+            <td><span class="status-badge ${airConditionerClass}">${airConditionerName}</span></td>
             <td>${room.open_time} - ${room.close_time}</td>
             <td>
                 <div class="action-buttons">
@@ -198,6 +269,10 @@ async function handleSubmit(e) {
   );
   formData.append("floor_number", document.getElementById("floorNumber").value);
   formData.append("status", parseInt(document.getElementById("status").value));
+  formData.append(
+    "air_conditioner",
+    parseInt(document.getElementById("air_conditioner").value),
+  );
   formData.append("open_time", document.getElementById("openTime").value);
   formData.append("close_time", document.getElementById("closeTime").value);
   formData.append(
@@ -256,6 +331,7 @@ function editRoom(roomId) {
   document.getElementById("roomSize").value = room.room_size;
   document.getElementById("floorNumber").value = room.floor_number;
   document.getElementById("status").value = room.status;
+  document.getElementById("air_conditioner").value = room.air_conditioner;
   document.getElementById("openTime").value = room.open_time;
   document.getElementById("closeTime").value = room.close_time;
   document.getElementById("description").value = room.description || "";

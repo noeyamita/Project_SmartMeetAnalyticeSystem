@@ -1,85 +1,196 @@
-/* พื้นหลัง */
+/* login_out_forgot.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 body {
     margin: 0;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
+    font-family: 'Poppins', sans-serif;
+    background: #e2e8f0;
 }
 
-/* ฟอร์ม login,sign up*/
 .login-container {
     background: #fff;
-    padding: 40px;
-    border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    width: 320px;
+    border-radius: 24px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    width: 900px;
+    max-width: 95%;
+    min-height: 550px;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+}
+
+.left-panel {
+    flex: 1;
+    background: #1e40af;
+    color: #fff;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.left-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(30, 64, 175, 0.9));
+    z-index: 1;
+}
+
+.left-panel::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 1000' preserveAspectRatio='none'%3E%3Cpath d='M100,0 C40,100 100,200 40,300 C100,400 40,500 100,600 C40,700 100,800 40,900 C100,1000 100,1000 100,1000 Z' fill='%23ffffff'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    z-index: 2;
+}
+
+.brand-content {
+    position: relative;
+    z-index: 3;
+}
+
+.brand-content .brand-icon {
+    width: 80px;
+    height: 80px;
+    background: #fff;
+    color: #2563eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 35px;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.brand-content h1 {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    line-height: 1.3;
+}
+
+.brand-content p {
+    font-size: 13px;
+    line-height: 1.6;
+    opacity: 0.85;
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+.right-panel {
+    flex: 1.1;
+    padding: 50px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #fff;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+    text-align: left;
 }
 
 .login-box h2 {
-    font-size: 35px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: #2563eb;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: #334155;
 }
 
 .register {
     font-size: 14px;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin-top: 5px;
+    margin-bottom: 30px;
+    color: #64748b;
 }
 
 .register a {
     color: #2563eb;
     text-decoration: none;
+    font-weight: 600;
 }
 
-/* ช่องกรอกข้อมูล */
 .input-box {
-    margin-bottom: 15px;
+    margin-bottom: 25px;
 }
 
-.input-box input {
+.input-box input,
+div.password-box input {
     width: 100%;
-    padding: 12px;
-    border-radius: 30px;
-    border: 1px solid #ccc;
+    padding: 12px 5px;
+    border: none;
+    border-bottom: 2px solid #cbd5e1;
+    border-radius: 0;
     outline: none;
     font-size: 14px;
+    color: #334155;
+    background: transparent;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
 }
 
-/* Remember / Forgot */
+.input-box input::placeholder,
+div.password-box input::placeholder {
+    color: #94a3b8;
+}
+
+.input-box input:focus,
+div.password-box input:focus {
+    border-bottom: 2px solid #2563eb;
+}
+
 .options {
     display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    justify-content: flex-end;
+    font-size: 13px;
+    margin-top: 10px;
+    margin-bottom: 25px;
 }
 
 .options a {
     color: #2563eb;
     text-decoration: none;
+    font-weight: 500;
 }
 
-/* ปุ่ม login,sign up*/
 .btn {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     border: none;
     border-radius: 30px;
     font-size: 16px;
+    font-weight: 600;
     color: #fff;
     cursor: pointer;
-    background: linear-gradient(to right, #3E5879, #213555);
-    transition: 0.3s;
+    background: #2563eb;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    transition: all 0.3s ease;
 }
 
 .btn:hover {
-    opacity: 0.7;
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
 }
 
 .strength {
@@ -89,30 +200,27 @@ body {
     color: gray;
 }
 
-/* Forgot Password */
-
 .forgot-description {
     font-size: 14px;
-    color: #666;
-    text-align: center;
-    margin-bottom: 20px;
-    line-height: 1.5;
+    color: #64748b;
+    margin-bottom: 30px;
+    line-height: 1.6;
 }
 
 .back-to-login {
-    margin-top: 20px;
+    margin-top: 25px;
     text-align: center;
 }
 
 .back-to-login p {
     font-size: 14px;
-    color: #666;
+    color: #64748b;
 }
 
 .back-to-login a {
     color: #2563eb;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .back-to-login a:hover {
@@ -122,56 +230,86 @@ body {
 .success-message {
     margin-top: 15px;
     padding: 12px;
-    background-color: #d4edda;
-    border: 1px solid #c3e6cb;
+    background-color: #dcfce7;
+    border: 1px solid #bbf7d0;
     border-radius: 8px;
     text-align: center;
 }
 
 .success-message p {
     margin: 0;
-    color: #155724;
+    color: #166534;
     font-size: 14px;
     font-weight: 500;
 }
 
-/* Animation for success message */
 .success-message.show {
     display: block !important;
     animation: fadeIn 0.5s ease-in;
 }
 
-
-/* เปิด-ปิดดูรหัสผ่าน */
 div.password-box {
-    margin-bottom: 15px;
+    margin-bottom: 25px;
     display: flex;
     align-items: center;
     position: relative;
 }
 
-div.password-box input {
-    width: 100%;
-    padding: 12px;
-    border-radius: 30px;
-    border: 1px solid #ccc;
-    outline: 0;
-    font-size: 14px;
-}
-
 div.password-box img {
-    width: 25px;
-    margin-left: -50px;
+    width: 20px;
+    position: absolute;
+    right: 5px;
     cursor: pointer;
     user-select: none;
+    opacity: 0.6;
+    transition: 0.3s;
 }
 
-/* ข้อความแสดงความแข็งแรงของรหัสผ่าน*/
+div.password-box img:hover {
+    opacity: 1;
+}
+
 #strengthMessage {
     position: absolute;
     top: 100%;
-    left: 12px;
-    margin-top: 1px;
-    font-size: 12px;
+    left: 5px;
+    margin-top: 4px;
+    font-size: 11px;
     min-height: 16px;
+    font-weight: 500;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+        max-width: 100%;
+        min-height: auto;
+    }
+
+    .left-panel {
+        padding: 30px 20px;
+        flex: none;
+    }
+
+    .left-panel::after {
+        display: none;
+    }
+
+    .right-panel {
+        padding: 40px 25px;
+        flex: 1;
+    }
 }

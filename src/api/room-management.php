@@ -112,6 +112,16 @@ if ($method === 'GET') {
             }
             break;
 
+        case 'getAirConditionerOptions':
+            try {
+                $stmt = $pdo->query("SELECT * FROM air_conditioner ");
+                $options = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                sendResponse(true, $options, 'ดึงข้อมูลตัวเลือกแอร์สำเร็จ');
+            } catch (PDOException $e) {
+                sendResponse(false, null, 'เกิดข้อผิดพลาด: ' . $e->getMessage());
+            }
+            break;
+
         default:
             sendResponse(false, null, 'Invalid action for GET request');
             break;
@@ -134,6 +144,7 @@ if ($method === 'GET') {
                     $_POST['room_size'],
                     $_POST['floor_number'],
                     $_POST['status'],
+                    $_POST['air_conditioner'],
                     $_POST['open_time'],
                     $_POST['close_time']
                 )) {
@@ -153,9 +164,9 @@ if ($method === 'GET') {
 
                 $stmt = $pdo->prepare("
                     INSERT INTO Meeting_Rooms 
-                    (room_name, capacity, room_size, floor_number, status, 
+                    (room_name, capacity, room_size, floor_number, status, air_conditioner,
                      open_time, close_time, image_url, description, created_at, updated_at) 
-                    VALUES (:room_name, :capacity, :room_size, :floor_number, :status, 
+                    VALUES (:room_name, :capacity, :room_size, :floor_number, :status, :air_conditioner,
                             :open_time, :close_time, :image_url, :description, NOW(), NOW())
                 ");
 
@@ -165,6 +176,7 @@ if ($method === 'GET') {
                     ':room_size' => $_POST['room_size'],
                     ':floor_number' => $_POST['floor_number'],
                     ':status' => $_POST['status'],
+                    ':air_conditioner' => $_POST['air_conditioner'],
                     ':open_time' => $_POST['open_time'],
                     ':close_time' => $_POST['close_time'],
                     ':image_url' => $imageUrl,
@@ -187,6 +199,7 @@ if ($method === 'GET') {
                     $_POST['room_size'],
                     $_POST['floor_number'],
                     $_POST['status'],
+                    $_POST['air_conditioner'],
                     $_POST['open_time'],
                     $_POST['close_time']
                 )) {
@@ -221,6 +234,7 @@ if ($method === 'GET') {
                     room_size = :room_size,
                     floor_number = :floor_number,
                     status = :status,
+                    air_conditioner = :air_conditioner,
                     open_time = :open_time,
                     close_time = :close_time,
                     image_url = :image_url,
@@ -235,6 +249,7 @@ if ($method === 'GET') {
                     ':room_size' => $_POST['room_size'],
                     ':floor_number' => $_POST['floor_number'],
                     ':status' => $_POST['status'],
+                    ':air_conditioner' => $_POST['air_conditioner'],
                     ':open_time' => $_POST['open_time'],
                     ':close_time' => $_POST['close_time'],
                     ':image_url' => $imageUrl,
