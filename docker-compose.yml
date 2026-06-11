@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   php-apache-backend:
@@ -15,19 +15,20 @@ services:
       - ./vendor:/var/www/html/vendor
     depends_on:
       - mysql
+    env_file:
+      - .env
     environment:
       DB_HOST: mysql
-      DB_USER: root
-      DB_PASSWORD: 1234
-      DB_NAME: db_amita
       TZ: Asia/Bangkok
 
   mysql:
     image: mysql:8.0
     container_name: mysql
+    env_file:
+      - .env
     environment:
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: db_amita
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
     ports:
       - "3306:3306"
     volumes:
@@ -41,11 +42,9 @@ services:
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
-      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     depends_on:
       - mysql
 
 volumes:
   mysql_data:
-
-

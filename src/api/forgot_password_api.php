@@ -16,11 +16,11 @@ require_once __DIR__ . '/../database.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-define('GMAIL_USER', 'smartmeet.system@gmail.com');
-define('GMAIL_PASS', 'pwjlsptzemewystp');
-define('MAIL_NAME', 'SmartMeet Analytics System');
-define('APP_NAME',  'SmartMeet Analytics System');
-define('APP_URL',   'http://localhost:8080');
+define('GMAIL_USER', getenv('GMAIL_USER'));
+define('GMAIL_PASS', getenv('GMAIL_PASS'));
+define('MAIL_NAME', getenv('NOTI_MAIL_NAME') ?: 'SmartMeet Analytics System');
+define('APP_NAME',  getenv('APP_NAME') ?: 'SmartMeet Analytics System');
+define('APP_URL',   getenv('APP_URL') ?: 'http://localhost:8080');
 
 function generateTempPassword(): string
 {

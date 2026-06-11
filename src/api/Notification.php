@@ -5,9 +5,9 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-define('GMAIL_USER', 'smartmeet.system@gmail.com');
-define('GMAIL_PASS', 'pwjlsptzemewystp');
-define('NOTI_MAIL_NAME',  'SmartMeet Analytics System');
+define('GMAIL_USER', getenv('GMAIL_USER'));
+define('GMAIL_PASS', getenv('GMAIL_PASS'));
+define('NOTI_MAIL_NAME', getenv('NOTI_MAIL_NAME') ?: 'SmartMeet Analytics System');
 
 class NotificationHelper
 {

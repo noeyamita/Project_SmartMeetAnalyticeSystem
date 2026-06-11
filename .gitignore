@@ -1,0 +1,7 @@
+# Environment files
+.env
+
+# Dependencies
+vendor/
+node_modules/
+
